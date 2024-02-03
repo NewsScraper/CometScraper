@@ -27,10 +27,10 @@ def get_sentiment():
 
     GetStockInfo = yf.Ticker(stock_ticker)
 
-    # if 'longBusinessSummary' in GetStockInfo.info:
-    #     long_business_summary = GetStockInfo.info['longBusinessSummary']
-    # else:
-    #     print("No 'longBusinessSummary' found in the dictionary.")# get all key value pairs that are available
+    if 'longBusinessSummary' in GetStockInfo.info:
+        long_business_summary = GetStockInfo.info['longBusinessSummary']
+    else:
+        print("No 'longBusinessSummary' found in the dictionary.")# get all key value pairs that are available
 
 
     historical_data = stock.history(period='2d', interval='1d')
@@ -175,7 +175,7 @@ def get_sentiment():
         'yClose' : yesterday_close,
         'dChange' : change_in_dollars,
         'pChange' : percent_change,
-        'LBS' : "long_business_summary",
+        'LBS' : long_business_summary,
         'Neg': mean_neg,
         'Neu': mean_neu,
         'Pos': mean_pos,

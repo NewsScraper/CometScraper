@@ -17,10 +17,11 @@ news_articles = stock.news
 
 GetStockInfo = yf.Ticker(ticker)
 
-if 'longBusinessSummary' in GetStockInfo.info:
-    long_business_summary = GetStockInfo.info['longBusinessSummary']
-else:
-    print("No 'longBusinessSummary' found in the dictionary.")# get all key value pairs that are available
+
+# if 'longBusinessSummary' in GetStockInfo.info:
+#     long_business_summary = GetStockInfo.info['longBusinessSummary']
+# else:
+#     print("No 'longBusinessSummary' found in the dictionary.")# get all key value pairs that are available
 
 
 historical_data = stock.history(period='2d', interval='1d')

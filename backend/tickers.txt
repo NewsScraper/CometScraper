@@ -1,0 +1,540 @@
+GOOGL, Alphabet Inc. (Class A), Communication Services
+GOOG, Alphabet Inc. (Class C), Communication Services
+T, AT&T, Communication Services
+CHTR, Charter Communications, Communication Services
+CMCSA, Comcast, Communication Services
+EA, Electronic Arts, Communication Services
+FOXA, Fox Corporation (Class A), Communication Services
+FOX, Fox Corporation (Class B), Communication Services
+IPG, Interpublic Group of Companies (The), Communication Services
+LYV, Live Nation Entertainment, Communication Services
+MTCH, Match Group, Communication Services
+META, Meta Platforms, Communication Services
+NFLX, Netflix, Communication Services
+NWSA, News Corp (Class A), Communication Services
+NWS, News Corp (Class B), Communication Services
+OMC, Omnicom Group, Communication Services
+PARA, Paramount Global, Communication Services
+TMUS, T-Mobile US, Communication Services
+TTWO, Take-Two Interactive, Communication Services
+VZ, Verizon, Communication Services
+DIS, Walt Disney, Communication Services
+WBD, Warner Bros. Discovery, Communication Services
+ABNB, Airbnb, Consumer Discretionary
+AMZN, Amazon, Consumer Discretionary
+APTV, Aptiv, Consumer Discretionary
+AZO, AutoZone, Consumer Discretionary
+BBWI, Bath & Body Works, Inc., Consumer Discretionary
+BBY, Best Buy, Consumer Discretionary
+BKNG, Booking Holdings, Consumer Discretionary
+BWA, BorgWarner, Consumer Discretionary
+CZR, Caesars Entertainment, Consumer Discretionary
+KMX, CarMax, Consumer Discretionary
+CCL, Carnival, Consumer Discretionary
+CMG, Chipotle Mexican Grill, Consumer Discretionary
+DRI, Darden Restaurants, Consumer Discretionary
+DPZ, Domino's, Consumer Discretionary
+DHI, DR Horton, Consumer Discretionary
+EBAY, eBay, Consumer Discretionary
+ETSY, Etsy, Consumer Discretionary
+EXPE, Expedia Group, Consumer Discretionary
+F, Ford Motor Company, Consumer Discretionary
+GRMN, Garmin, Consumer Discretionary
+GM, General Motors, Consumer Discretionary
+GPC, Genuine Parts Company, Consumer Discretionary
+HAS, Hasbro, Consumer Discretionary
+HLT, Hilton Worldwide, Consumer Discretionary
+HD, Home Depot (The), Consumer Discretionary
+LVS, Las Vegas Sands, Consumer Discretionary
+LEN, Lennar, Consumer Discretionary
+LKQ, LKQ Corporation, Consumer Discretionary
+LOW, Lowe's, Consumer Discretionary
+LULU, Lululemon Athletica, Consumer Discretionary
+MAR, Marriott International, Consumer Discretionary
+MCD, McDonald's, Consumer Discretionary
+MGM, MGM Resorts, Consumer Discretionary
+MHK, Mohawk Industries, Consumer Discretionary
+NKE, Nike, Inc., Consumer Discretionary
+NCLH, Norwegian Cruise Line Holdings, Consumer Discretionary
+NVR, NVR, Inc., Consumer Discretionary
+ORLY, O'Reilly Auto Parts, Consumer Discretionary
+POOL, Pool Corporation, Consumer Discretionary
+PHM, PulteGroup, Consumer Discretionary
+RL, Ralph Lauren Corporation, Consumer Discretionary
+ROST, Ross Stores, Consumer Discretionary
+RCL, Royal Caribbean Group, Consumer Discretionary
+SBUX, Starbucks, Consumer Discretionary
+TPR, Tapestry, Inc., Consumer Discretionary
+TSLA, Tesla, Inc., Consumer Discretionary
+TJX, TJX Companies, Consumer Discretionary
+TSCO, Tractor Supply, Consumer Discretionary
+ULTA, Ulta Beauty, Consumer Discretionary
+VFC, VF Corporation, Consumer Discretionary
+WHR, Whirlpool Corporation, Consumer Discretionary
+WYNN, Wynn Resorts, Consumer Discretionary
+YUM, Yum! Brands, Consumer Discretionary
+MO, Altria, Consumer Staples
+ADM, Archer-Daniels-Midland, Consumer Staples
+BF_B, Brown–Forman, Consumer Staples
+BG, Bunge Global SA, Consumer Staples
+CPB, Campbell Soup Company, Consumer Staples
+CHD, Church & Dwight, Consumer Staples
+CLX, Clorox, Consumer Staples
+KO, Coca-Cola Company (The), Consumer Staples
+CL, Colgate-Palmolive, Consumer Staples
+CAG, Conagra Brands, Consumer Staples
+STZ, Constellation Brands, Consumer Staples
+COST, Costco, Consumer Staples
+DG, Dollar General, Consumer Staples
+DLTR, Dollar Tree, Consumer Staples
+EL, Estée Lauder Companies (The), Consumer Staples
+GIS, General Mills, Consumer Staples
+HSY, Hershey's, Consumer Staples
+HRL, Hormel Foods, Consumer Staples
+K, Kellanova, Consumer Staples
+KVUE, Kenvue, Consumer Staples
+KDP, Keurig Dr Pepper, Consumer Staples
+KMB, Kimberly-Clark, Consumer Staples
+KHC, Kraft Heinz, Consumer Staples
+KR, Kroger, Consumer Staples
+LW, Lamb Weston, Consumer Staples
+MKC, McCormick & Company, Consumer Staples
+TAP, Molson Coors Beverage Company, Consumer Staples
+MDLZ, Mondelez International, Consumer Staples
+MNST, Monster Beverage, Consumer Staples
+PEP, PepsiCo, Consumer Staples
+PM, Philip Morris International, Consumer Staples
+PG, Procter & Gamble, Consumer Staples
+SJM, J.M. Smucker Company (The), Consumer Staples
+SYY, Sysco, Consumer Staples
+TGT, Target Corporation, Consumer Staples
+TSN, Tyson Foods, Consumer Staples
+WBA, Walgreens Boots Alliance, Consumer Staples
+WMT, Walmart, Consumer Staples
+APA, APA Corporation, Energy
+BKR, Baker Hughes, Energy
+CVX, Chevron Corporation, Energy
+COP, ConocoPhillips, Energy
+CTRA, Coterra, Energy
+DVN, Devon Energy, Energy
+FANG, Diamondback Energy, Energy
+EOG, EOG Resources, Energy
+EQT, EQT, Energy
+XOM, ExxonMobil, Energy
+HAL, Halliburton, Energy
+HES, Hess Corporation, Energy
+KMI, Kinder Morgan, Energy
+MRO, Marathon Oil, Energy
+MPC, Marathon Petroleum, Energy
+OXY, Occidental Petroleum, Energy
+OKE, ONEOK, Energy
+PSX, Phillips 66, Energy
+PXD, Pioneer Natural Resources, Energy
+SLB, Schlumberger, Energy
+TRGP, Targa Resources, Energy
+VLO, Valero Energy, Energy
+WMB, Williams Companies, Energy
+AFL, Aflac, Financials
+ALL, Allstate, Financials
+AXP, American Express, Financials
+AIG, American International Group, Financials
+AMP, Ameriprise Financial, Financials
+AON, Aon, Financials
+ACGL, Arch Capital Group, Financials
+AJG, Arthur J. Gallagher & Co., Financials
+AIZ, Assurant, Financials
+BAC, Bank of America, Financials
+BK, Bank of New York Mellon, Financials
+BRK_B, Berkshire Hathaway, Financials
+BLK, BlackRock, Financials
+BX, Blackstone, Financials
+BRO, Brown & Brown, Financials
+COF, Capital One, Financials
+CBOE, Cboe Global Markets, Financials
+SCHW, Charles Schwab Corporation, Financials
+CB, Chubb Limited, Financials
+CINF, Cincinnati Financial, Financials
+C, Citigroup, Financials
+CFG, Citizens Financial Group, Financials
+CME, CME Group, Financials
+CMA, Comerica, Financials
+DFS, Discover Financial, Financials
+EG, Everest Re, Financials
+FDS, FactSet, Financials
+FIS, Fidelity National Information Services, Financials
+FITB, Fifth Third Bank, Financials
+FI, Fiserv, Financials
+FLT, Fleetcor, Financials
+BEN, Franklin Templeton, Financials
+GPN, Global Payments, Financials
+GL, Globe Life, Financials
+GS, Goldman Sachs, Financials
+HIG, Hartford (The), Financials
+HBAN, Huntington Bancshares, Financials
+ICE, Intercontinental Exchange, Financials
+IVZ, Invesco, Financials
+JKHY, Jack Henry & Associates, Financials
+JPM, JPMorgan Chase, Financials
+KEY, KeyCorp, Financials
+L, Loews Corporation, Financials
+MTB, M&T Bank, Financials
+MKTX, MarketAxess, Financials
+MMC, Marsh McLennan, Financials
+MA, Mastercard, Financials
+MET, MetLife, Financials
+MCO, Moody's Corporation, Financials
+MS, Morgan Stanley, Financials
+MSCI, MSCI, Financials
+NDAQ, Nasdaq, Inc., Financials
+NTRS, Northern Trust, Financials
+PYPL, PayPal, Financials
+PNC, PNC Financial Services, Financials
+PFG, Principal Financial Group, Financials
+PGR, Progressive Corporation, Financials
+PRU, Prudential Financial, Financials
+RJF, Raymond James, Financials
+RF, Regions Financial Corporation, Financials
+SPGI, S&P Global, Financials
+STT, State Street Corporation, Financials
+SYF, Synchrony Financial, Financials
+TROW, T. Rowe Price, Financials
+TRV, Travelers Companies (The), Financials
+TFC, Truist, Financials
+USB, U.S. Bank, Financials
+V, Visa Inc., Financials
+WRB, Berkley, Financials
+WFC, Wells Fargo, Financials
+WTW, Willis Towers Watson, Financials
+ZION, Zions Bancorporation, Financials
+ABT, Abbott, Health Care
+ABBV, AbbVie, Health Care
+A, Agilent Technologies, Health Care
+ALGN, Align Technology, Health Care
+AMGN, Amgen, Health Care
+BAX, Baxter International, Health Care
+BDX, Becton Dickinson, Health Care
+BIO, Bio-Rad, Health Care
+TECH, Bio-Techne, Health Care
+BIIB, Biogen, Health Care
+BSX, Boston Scientific, Health Care
+BMY, Bristol Myers Squibb, Health Care
+CAH, Cardinal Health, Health Care
+CTLT, Catalent, Health Care
+COR, Cencora, Health Care
+CNC, Centene Corporation, Health Care
+CRL, Charles River Laboratories, Health Care
+CI, Cigna, Health Care
+COO, CooperCompanies, Health Care
+CVS, CVS Health, Health Care
+DHR, Danaher Corporation, Health Care
+DVA, DaVita Inc., Health Care
+XRAY, Dentsply Sirona, Health Care
+DXCM, Dexcom, Health Care
+EW, Edwards Lifesciences, Health Care
+ELV, Elevance Health, Health Care
+LLY, Eli Lilly and Company, Health Care
+GEHC, GE HealthCare, Health Care
+GILD, Gilead Sciences, Health Care
+HCA, HCA Healthcare, Health Care
+HSIC, Henry Schein, Health Care
+HOLX, Hologic, Health Care
+HUM, Humana, Health Care
+IDXX, Idexx Laboratories, Health Care
+ILMN, Illumina, Health Care
+INCY, Incyte, Health Care
+PODD, Insulet, Health Care
+ISRG, Intuitive Surgical, Health Care
+IQV, IQVIA, Health Care
+JNJ, Johnson & Johnson, Health Care
+LH, LabCorp, Health Care
+MCK, McKesson, Health Care
+MDT, Medtronic, Health Care
+MRK, Merck & Co., Health Care
+MTD, Mettler Toledo, Health Care
+MRNA, Moderna, Health Care
+MOH, Molina Healthcare, Health Care
+PFE, Pfizer, Health Care
+DGX, Quest Diagnostics, Health Care
+REGN, Regeneron, Health Care
+RMD, ResMed, Health Care
+RVTY, Revvity (Previously PerkinElmer), Health Care
+STE, Steris, Health Care
+SYK, Stryker Corporation, Health Care
+TFX, Teleflex, Health Care
+TMO, Thermo Fisher Scientific, Health Care
+UNH, UnitedHealth Group, Health Care
+UHS, Universal Health Services, Health Care
+VRTX, Vertex Pharmaceuticals, Health Care
+VTRS, Viatris, Health Care
+WAT, Waters Corporation, Health Care
+WST, West Pharmaceutical Services, Health Care
+ZBH, Zimmer Biomet, Health Care
+ZTS, Zoetis, Health Care
+MMM, 3M, Industrials
+AOS, A. O. Smith, Industrials
+ALLE, Allegion, Industrials
+AAL, American Airlines Group, Industrials
+AME, Ametek, Industrials
+ADP, Automated Data Processing, Industrials
+AXON, Axon Enterprise, Industrials
+BA, Boeing, Industrials
+BR, Broadridge Financial Solutions, Industrials
+BLDR, Builders FirstSource, Industrials
+CARR, Carrier Global, Industrials
+CAT, Caterpillar Inc., Industrials
+CDAY, Ceridian, Industrials
+CHRW, CH Robinson, Industrials
+CTAS, Cintas, Industrials
+CPRT, Copart, Industrials
+CSX, CSX, Industrials
+CMI, Cummins, Industrials
+DE, John Deere, Industrials
+DAL, Delta Air Lines, Industrials
+DOV, Dover Corporation, Industrials
+ETN, Eaton Corporation, Industrials
+EMR, Emerson Electric, Industrials
+EFX, Equifax, Industrials
+EXPD, Expeditors International, Industrials
+FAST, Fastenal, Industrials
+FDX, FedEx, Industrials
+FTV, Fortive, Industrials
+GNRC, Generac, Industrials
+GD, General Dynamics, Industrials
+GE, General Electric, Industrials
+HON, Honeywell, Industrials
+HWM, Howmet Aerospace, Industrials
+HUBB, Hubbell Incorporated, Industrials
+HII, Huntington Ingalls Industries, Industrials
+IEX, IDEX Corporation, Industrials
+ITW, Illinois Tool Works, Industrials
+IR, Ingersoll Rand, Industrials
+JBHT, J.B. Hunt, Industrials
+J, Jacobs Solutions, Industrials
+JCI, Johnson Controls, Industrials
+LHX, L3Harris, Industrials
+LDOS, Leidos, Industrials
+LMT, Lockheed Martin, Industrials
+MAS, Masco, Industrials
+NDSN, Nordson Corporation, Industrials
+NSC, Norfolk Southern Railway, Industrials
+NOC, Northrop Grumman, Industrials
+ODFL, Old Dominion, Industrials
+OTIS, Otis Worldwide, Industrials
+PCAR, Paccar, Industrials
+PH, Parker Hannifin, Industrials
+PAYX, Paychex, Industrials
+PAYC, Paycom, Industrials
+PNR, Pentair, Industrials
+PWR, Quanta Services, Industrials
+RTX, RTX Corporation, Industrials
+RSG, Republic Services, Industrials
+RHI, Robert Half, Industrials
+ROK, Rockwell Automation, Industrials
+ROL, Rollins, Inc., Industrials
+SNA, Snap-on, Industrials
+LUV, Southwest Airlines, Industrials
+SWK, Stanley Black & Decker, Industrials
+TXT, Textron, Industrials
+TT, Trane Technologies, Industrials
+TDG, TransDigm Group, Industrials
+UBER, Uber, Industrials
+UNP, Union Pacific Corporation, Industrials
+UAL, United Airlines Holdings, Industrials
+UPS, United Parcel Service, Industrials
+URI, United Rentals, Industrials
+VLTO, Veralto, Industrials
+VRSK, Verisk, Industrials
+WAB, Wabtec, Industrials
+WM, Waste Management, Industrials
+GWW, W. W. Grainger, Industrials
+XYL, Xylem Inc., Industrials
+ACN, Accenture, Information Technology
+ADBE, Adobe Inc., Information Technology
+AMD, Advanced Micro Devices, Information Technology
+AKAM, Akamai, Information Technology
+APH, Amphenol, Information Technology
+ADI, Analog Devices, Information Technology
+ANSS, Ansys, Information Technology
+AAPL, Apple Inc., Information Technology
+AMAT, Applied Materials, Information Technology
+ANET, Arista Networks, Information Technology
+ADSK, Autodesk, Information Technology
+AVGO, Broadcom Inc., Information Technology
+CDNS, Cadence Design Systems, Information Technology
+CDW, CDW, Information Technology
+CSCO, Cisco, Information Technology
+CTSH, Cognizant, Information Technology
+GLW, Corning Inc., Information Technology
+ENPH, Enphase, Information Technology
+EPAM, EPAM Systems, Information Technology
+FFIV, F5, Inc., Information Technology
+FICO, Fair Isaac, Information Technology
+FSLR, First Solar, Information Technology
+FTNT, Fortinet, Information Technology
+IT, Gartner, Information Technology
+GEN, Gen Digital, Information Technology
+HPE, Hewlett Packard Enterprise, Information Technology
+HPQ, HP Inc., Information Technology
+IBM, IBM, Information Technology
+INTC, Intel, Information Technology
+INTU, Intuit, Information Technology
+JBL, Jabil, Information Technology
+JNPR, Juniper Networks, Information Technology
+KEYS, Keysight, Information Technology
+KLAC, KLA Corporation, Information Technology
+LRCX, Lam Research, Information Technology
+MCHP, Microchip Technology, Information Technology
+MU, Micron Technology, Information Technology
+MSFT, Microsoft, Information Technology
+MPWR, Monolithic Power Systems, Information Technology
+MSI, Motorola Solutions, Information Technology
+NTAP, NetApp, Information Technology
+NVDA, Nvidia, Information Technology
+NXPI, NXP Semiconductors, Information Technology
+ON, ON Semiconductor, Information Technology
+ORCL, Oracle Corporation, Information Technology
+PANW, Palo Alto Networks, Information Technology
+PTC, PTC, Information Technology
+QRVO, Qorvo, Information Technology
+QCOM, Qualcomm, Information Technology
+ROP, Roper Technologies, Information Technology
+CRM, Salesforce, Information Technology
+STX, Seagate Technology, Information Technology
+NOW, ServiceNow, Information Technology
+SWKS, Skyworks Solutions, Information Technology
+SNPS, Synopsys, Information Technology
+TEL, TE Connectivity, Information Technology
+TDY, Teledyne Technologies, Information Technology
+TER, Teradyne, Information Technology
+TXN, Texas Instruments, Information Technology
+TRMB, Trimble Inc., Information Technology
+TYL, Tyler Technologies, Information Technology
+VRSN, Verisign, Information Technology
+WDC, Western Digital, Information Technology
+ZBRA, Zebra Technologies, Information Technology
+APD, Air Products and Chemicals, Materials
+ALB, Albemarle Corporation, Materials
+AMCR, Amcor, Materials
+AVY, Avery Dennison, Materials
+BALL, Ball Corporation, Materials
+CE, Celanese, Materials
+CF, CF Industries, Materials
+CTVA, Corteva, Materials
+DOW, Dow Inc., Materials
+DD, DuPont, Materials
+EMN, Eastman Chemical Company, Materials
+ECL, Ecolab, Materials
+FMC, FMC Corporation, Materials
+FCX, Freeport-McMoRan, Materials
+IFF, International Flavors & Fragrances, Materials
+IP, International Paper, Materials
+LIN, Linde plc, Materials
+LYB, LyondellBasell, Materials
+MLM, Martin Marietta Materials, Materials
+MOS, Mosaic Company (The), Materials
+NEM, Newmont, Materials
+NUE, Nucor, Materials
+PKG, Packaging Corporation of America, Materials
+PPG, PPG Industries, Materials
+SHW, Sherwin-Williams, Materials
+STLD, Steel Dynamics, Materials
+VMC, Vulcan Materials Company, Materials
+WRK, WestRock, Materials
+ARE, Alexandria Real Estate Equities, Real Estate
+AMT, American Tower, Real Estate
+AVB, AvalonBay Communities, Real Estate
+BXP, Boston Properties, Real Estate
+CPT, Camden Property Trust, Real Estate
+CBRE, CBRE Group, Real Estate
+CSGP, CoStar Group, Real Estate
+CCI, Crown Castle, Real Estate
+DLR, Digital Realty, Real Estate
+EQIX, Equinix, Real Estate
+EQR, Equity Residential, Real Estate
+ESS, Essex Property Trust, Real Estate
+EXR, Extra Space Storage, Real Estate
+FRT, Federal Realty, Real Estate
+PEAK, Healthpeak, Real Estate
+HST, Host Hotels & Resorts, Real Estate
+INVH, Invitation Homes, Real Estate
+IRM, Iron Mountain, Real Estate
+KIM, Kimco Realty, Real Estate
+MAA, Mid-America Apartment Communities, Real Estate
+PLD, Prologis, Real Estate
+PSA, Public Storage, Real Estate
+O, Realty Income, Real Estate
+REG, Regency Centers, Real Estate
+SBAC, SBA Communications, Real Estate
+SPG, Simon Property Group, Real Estate
+UDR, UDR, Inc., Real Estate
+VTR, Ventas, Real Estate
+VICI, Vici Properties, Real Estate
+WELL, Welltower, Real Estate
+WY, Weyerhaeuser, Real Estate
+AES, AES Corporation, Utilities
+LNT, Alliant Energy, Utilities
+AEE, Ameren, Utilities
+AEP, American Electric Power, Utilities
+AWK, American Water Works, Utilities
+ATO, Atmos Energy, Utilities
+CNP, CenterPoint Energy, Utilities
+CMS, CMS Energy, Utilities
+ED, Consolidated Edison, Utilities
+CEG, Constellation Energy, Utilities
+D, Dominion Energy, Utilities
+DTE, DTE Energy, Utilities
+DUK, Duke Energy, Utilities
+EIX, Edison International, Utilities
+ETR, Entergy, Utilities
+EVRG, Evergy, Utilities
+ES, Eversource, Utilities
+EXC, Exelon, Utilities
+FE, FirstEnergy, Utilities
+NEE, NextEra Energy, Utilities
+NI, NiSource, Utilities
+NRG, NRG Energy, Utilities
+PCG, PG&E Corporation, Utilities
+PNW, Pinnacle West, Utilities
+PPL, PPL Corporation, Utilities
+PEG, Public Service Enterprise Group, Utilities
+SRE, Sempra Energy, Utilities
+SO, Southern Company, Utilities
+WEC, WEC Energy Group, Utilities
+XEL, Xcel Energy, Utilities
+ES=F, E-Mini S&P 500 Mar 24, Futures
+YM=F, Mini Dow Jones Indus.-$5 Mar 24, Futures
+NQ=F, Nasdaq 100 Mar 24, Futures
+RTY=F, E-mini Russell 2000 Index Futur, Futures
+ZB=F, U.S. Treasury Bond Futures,Mar-, Futures
+ZN=F, 10-Year T-Note Futures,Mar-2024, Futures
+ZF=F, Five-Year US Treasury Note Futu, Futures
+ZT=F, 2-Year T-Note Futures,Mar-2024, Futures
+GC=F, Gold, Futures
+MGC=F, Micro Gold Futures,Apr-2024, Futures
+SI=F, Silver, Futures
+SIL=F, Micro Silver Futures,Mar-2024, Futures
+PL=F, Platinum Apr 24, Futures
+HG=F, Copper Mar 24, Futures
+PA=F, Palladium Mar 24, Futures
+CL=F, Crude Oil, Futures
+HO=F, Heating Oil Feb 24, Futures
+NG=F, Natural Gas Feb 24, Futures
+RB=F, RBOB Gasoline Feb 24, Futures
+BZ=F, Brent Crude Oil Last Day Financ, Futures
+B0=F, Mont Belvieu LDH Propane (OPIS), Futures
+ZC=F, Corn Futures,Mar-2024, Futures
+ZO=F, Oat Futures,Mar-2024, Futures
+KE=F, KC HRW Wheat Futures,Mar-2024, Futures
+ZR=F, Rough Rice Futures,Mar-2024, Futures
+ZM=F, S&P Composite 1500 ESG Tilted I, Futures
+ZL=F, Soybean Oil Futures,Mar-2024, Futures
+ZS=F, Soybean Futures,Mar-2024, Futures
+GF=F, WisdomTree International High D, Futures
+HE=F, Lean Hogs Futures,Feb-2024, Futures
+LE=F, Live Cattle Futures,Feb-2024, Futures
+CC=F, Cocoa Mar 24, Futures
+KC=F, Coffee Mar 24, Futures
+CT=F, Cotton Mar 24, Futures
+LBS=F, Random Length Lumber Futures, Futures
+OJ=F, Orange Juice Mar 24, Futures
+SB=F, Sugar #11 Mar 24, Futures
