@@ -5,12 +5,16 @@ import ResultsPage from "./pages/ResultsPage";
 import "./App.css"; // Import your CSS file here
 import LoginPage from "./pages/LoginPage";
 import LocationPage from "./pages/LocationPage";
+import { Auth } from "./pages/AuthPage";
 
 
 function App() {
   return (
     <Router>
       <Switch>
+      <Route path="/auth">
+          <Auth />
+        </Route>
         <Route path="/location">
           <LocationPage />
         </Route>

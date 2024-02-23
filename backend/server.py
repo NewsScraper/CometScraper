@@ -20,6 +20,11 @@ def get_sentiment():
     stock_ticker = request.args.get('ticker')
     
     stock = yf.Ticker(stock_ticker)
+    # chartData = stock.history(period='1095d', interval='1d')
+    chartData = stock.history(period='10950d', interval='1d')
+    close_prices = chartData['Close']
+    close_prices_list = close_prices.tolist()
+    chartPointCt =  len(close_prices_list)
 
 
     # show news
@@ -180,7 +185,9 @@ def get_sentiment():
         'Neu': mean_neu,
         'Pos': mean_pos,
         'Compound Score': average_compound_score,
-        'Overall Sentiment': overall_score
+        'Overall Sentiment': overall_score,
+        'Close Prices': close_prices_list,
+        'ChartPointCt' : chartPointCt,
     })
 
 

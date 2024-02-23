@@ -6,16 +6,21 @@ import utdfintechlogo from "../components/utdfintechlogo.png";
 import logingraphicblue1 from "../components/logingraphicblue1.png";
 import { useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
-//import firebase from '../components/firebase';
-//import { auth } from '../components/firebaseAdmin';
+import {  auth, database, googleAuthProvider } from "../config/firebase";
+import firebase from 'firebase/compat/app';
 
 
 
 function LoginPage() {
+    
     const history = useHistory();
     const [isNewUser, setIsNewUser] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const handleName = e => {setFirstName(e.target.value);}
+    const handleLastName = e => {setLastName(e.target.value);};
     const handlePassword = e => {setPassword(e.target.value);}
     const handleEmail = e => {setEmail(e.target.value);};
     const [loginEmail, setLoginEmail] = useState("");
@@ -23,14 +28,72 @@ function LoginPage() {
     const handleLoginPassword = e => {setLoginPassword(e.target.value);}
     const handleLoginEmail = e => {setLoginEmail(e.target.value);};
     const registerNewUser = () => {setIsNewUser((prevState) => !prevState)}
+    const [loggedIn, setLoggedIn] = useState(false);
 
-    const loggedIn = () => {
-        // Redirect to the results page with the stock ticker as a query parameter
-        history.push(`/search`);
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          if (user) {
+            setLoggedIn(true);
+          } else {
+            setLoggedIn(false);
+          }
+        });
+    
+        return () => unsubscribe();
+      }, []);
+
+      const signIn = async () => {
+        try {
+          await auth.signInWithEmailAndPassword(loginEmail, loginPassword);
+          history.push(`/search`);
+        } catch (err) {
+          console.error(err);
+        }
       };
-    const handleSignUp = () => {
-        history.push('/register'); // Navigate to the sign-up page
-    };
+    
+      const signUp = async () => {
+        try {
+          await auth.createUserWithEmailAndPassword(email, password);
+          const user = auth.currentUser;
+          if (user) {
+            const uid = user.uid;
+      
+            // Write user data to the database
+            await database.ref(`users/${uid}`).set({
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+              // Add other user information as needed
+            });
+      
+            // Redirect to the search page
+            history.push(`/search`);
+          } else {
+            console.error('No user signed in');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+    
+      const signInWithGoogle = async () => {
+        try {
+          await auth.signInWithPopup(googleAuthProvider);
+          history.push(`/search`);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+    
+      const logOut = async () => {
+        try {
+          await auth.signOut();
+        } catch (err) {
+          console.error(err);
+        }
+      };
+    
 
     return (
         <div style={{ height: '100vh'  }} >
@@ -138,6 +201,7 @@ function LoginPage() {
                                         label={<span style={{ fontFamily: 'Avenir' }}>FIRST NAME</span>}
                                         name="First_Name"
                                         autoComplete="First Name"
+                                        onChange={handleName}
                                         InputProps={{
                                             style: {
                                               borderRadius: "7.5px",
@@ -153,6 +217,7 @@ function LoginPage() {
                                         label={<span style={{ fontFamily: 'Avenir' }}>LAST NAME</span>}
                                         id="last_name"
                                         autoComplete="Last Name"
+                                        onChange={handleLastName}
                                         InputProps={{
                                             style: {
                                               borderRadius: "7.5px",
@@ -164,40 +229,7 @@ function LoginPage() {
                                         variant="contained"
                                         sx={{ mt: 3, mb: 2, fontFamily: 'Avenir' }}
                                         onClick={() => {
-                                            const login = email;
-                                            const pw = password;
-
-                                        //     firebase
-                                        //         .auth()
-                                        //         .createUserWithEmailAndPassword(login, pw)
-                                        //         .then(({ user }) => {
-                                        //             return user.getIdToken().then((idToken) => {
-
-                                        //             });
-                                        //         })
-                                        //         .then(() => {
-                                        //             if(firebase.auth().currentUser){
-                                        //                 history.push(`/search`);
-                                        // }
-                                        //         });
-                                            //return false;
-                                            // auth.setPersistence(auth.Auth.Persistence.LOCAL);
-                                            // const login = email;
-                                            // const pw = password;
-
-                                            // auth.createUserWithEmailAndPassword(login, pw)
-                                            //     .then(({ user }) => {
-                                            //         return user.getIdToken().then((idToken) => {
-
-                                            //         });
-                                            //     })
-                                            //     .then(() => {
-                                            //         if(auth.currentUser){
-                                            //             history.push(`/search`);
-                                            //         }
-                                            //     });
-                                            // return false;
-
+                                            signUp();                                     
                                         }}
                                     >
                                         Create Account
@@ -266,20 +298,7 @@ function LoginPage() {
                                         variant="contained"
                                         sx={{ mt: 3, mb: 2, mr: 5, fontFamily: 'Avenir'}}
                                         onClick={() => {
-                                            // firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-                                            // const login = loginEmail;
-                                            // const pw = loginPassword;
-                                            // firebase
-                                            //     .auth()
-                                            //     .signInWithEmailAndPassword(login, pw)
-                                            //     .then(({ user }) => {
-                                            //     })
-                                            //     .then(() => {
-                                            //         if(firebase.auth().currentUser){
-                                            //         router.push('/dashboard');
-                                            //         }
-                                            //     });
-                                            // return false;
+                                             signIn();
                                         }}
                                     >
                                         Log In
@@ -290,19 +309,7 @@ function LoginPage() {
                                         className={"googleLoginButton"}
                                         sx={{ mt: 3, mb: 2, fontFamily: 'Avenir'}}
                                         onClick={() => {
-                                            // var provider =
-                                            //     new firebase.auth.GoogleAuthProvider();
-                                            //     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-                                            // firebase
-                                            //     .auth()
-                                            //     .signInWithPopup(provider)
-                                            //     .then((result) => {
-                                            //         console.log(result.user);
-                                            //         router.push('/dashboard');
-                                            //     })
-                                            //     .catch((error) => {
-                                            //         console.error(error);
-                                            //     });
+                                            signInWithGoogle();
                                         }}
                                     >
                                         Log In With Google

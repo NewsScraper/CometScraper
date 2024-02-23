@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import styles from "../components/home.module.css";
 import { Box } from "@mui/system";
@@ -10,7 +10,20 @@ import downArrow from "../components/downArrow.png";
 import fintechLogo from "../components/FinTech_logo.png";
 import { teal, pink , red, grey} from "@mui/material/colors";
 import { alpha } from '@mui/material/styles';
-
+import sunIcon from '../components/icons8-sun-50.png';
+import partlyCloudyIcon from '../components/icons8-partly-cloudy-day-50.png';
+import hailIcon from '../components/icons8-hail-50.png';
+import snowIcon from '../components/icons8-snow-50.png';
+import stormIcon from '../components/icons8-storm-50.png';
+import sleetIcon from '../components/icons8-sleet-50.png';
+import heavyRainIcon from '../components/icons8-heavy-rain-50.png';
+import drizzleIcon from '../components/icons8-light-rain-50.png';
+import fogIcon from '../components/icons8-cloud-50.png';
+import { database, auth, googleAuthProvider } from "../config/firebase";
+import { useHistory } from "react-router-dom";
+import firebase from 'firebase/compat/app';
+import userLogo from "../components/user-128.png";
+import Chart from 'chart.js/auto';
 
 import {
   Button,
@@ -34,6 +47,7 @@ const decreasedRed = alpha("#ff0000", 0.675); // 0.7 is the alpha value, you can
 
 function ResultsPage() {
   const location = useLocation();
+  const history = useHistory();
   const searchParams = new URLSearchParams(location.search);
   const stockTicker = searchParams.get("ticker");
   const [stockData, setStockData] = useState(null);
@@ -43,9 +57,15 @@ function ResultsPage() {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const currentDate = new Date();
   const [latitude, setLatitude] = useState(null);
-    const [longitude, setLongitude] = useState(null);
-    const [error, setError] = useState(null);
-    const [closestTemperature, setClosestTemperature] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [error, setError] = useState(null);
+  const [closestTemperature, setClosestTemperature] = useState(null);
+  const [weatherCode, setWeatherCode] = useState(null);
+  const [weatherImage, setWeatherImage] = useState(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [closePrices, setClosePrices] = useState([]);
+  const chartRef = useRef(null); // Reference to the chart canvas element
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -56,6 +76,52 @@ function ResultsPage() {
 
   const formattedDate = `${dayOfWeek}, ${month} ${dayOfMonth}${getOrdinalSuffix(dayOfMonth)}`;
 
+
+  useEffect(() => {
+    
+    const checkLoggedInStatus = async () => {
+      try {
+        await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+
+        const user = await auth.currentUser;
+        if (user) {
+          setLoggedIn(true);
+          console.log("User is logged in");
+          
+        } else {
+          setLoggedIn(false);
+          console.log("User is logged out");
+
+          history.push(`/login`);
+        }
+      } catch (error) {
+        console.error("Error checking authentication status:", error);
+      }
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const uid = user.uid;
+          // Get user data from the database
+          const userSnapshot = await database.ref(`users/${uid}`).once('value');
+          const userData = userSnapshot.val();
+          // Extract and set the first name to state
+          if (userData && userData.firstName) {
+            setFirstName(", " + userData.firstName + "!");
+          }
+          else{
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    checkLoggedInStatus();
+  
+    return () => {
+      // Cleanup logic if necessary
+    };
+  }, []);
 
   useEffect(() => {
     if (stockTicker) {
@@ -84,12 +150,18 @@ function ResultsPage() {
               })
             );
           }
+          console.log(sentimentData["Close Prices"])
+          if (sentimentData && sentimentData["Close Prices"]) {
+            setClosePrices(sentimentData["Close Prices"]);
+          }
+          drawChart(closePrices);
+        
         })
         .catch((error) => {
           console.error("Error:", error);
         });
     }
-  }, [stockTicker]);
+  }, [stockTicker, closePrices]);
 
   useEffect(() => {
     // Check if the Geolocation API is available in the browser
@@ -110,21 +182,19 @@ function ResultsPage() {
 }, []); // Empty dependency array to ensure useEffect runs only once
 useEffect(() => {
   if (latitude !== null && longitude !== null) {
-      // Make API call to Open Meteo API
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m`)
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weather_code`)
           .then(response => response.json())
           .then(data => {
-              // Extract temperature and time from response
               const hourlyTemperature = data.hourly.temperature_2m;
               const hourlyTime = data.hourly.time;
+              const hourlyWeatherCode = data.hourly.weather_code;
 
-              // Convert Celsius to Fahrenheit and pair with time
               const fahrenheitTemperatureData = hourlyTemperature.map((temp, index) => ({
-                  time: hourlyTime[index].split('T')[1].substring(0, 5), // Extract HH:mm from time
-                  temperature: Math.round((temp * 9 / 5) + 32), // Round to nearest degree
+                  time: hourlyTime[index].split('T')[1].substring(0, 5),
+                  temperature: Math.round((temp * 9 / 5) + 32),
+                  weatherCode: hourlyWeatherCode[index],
               }));
 
-              // Find the closest temperature entry to the current time
               let closestEntry = null;
               let minDifference = Number.MAX_VALUE;
 
@@ -133,8 +203,14 @@ useEffect(() => {
                   const currentDate = new Date();
                   currentDate.setHours(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10), 0, 0);
 
-                  // Calculate the time difference between current time and entry time
-                  const timeDifference = Math.abs(currentDate - new Date());
+                  let timeDifference = Math.abs(currentDate - new Date());
+                  const currentDateBackward = new Date(currentDate);
+                  currentDateBackward.setHours(currentDate.getHours() - 1);
+                  const timeDifferenceBackward = Math.abs(currentDateBackward - new Date());
+
+                  if (timeDifferenceBackward < timeDifference) {
+                      timeDifference = timeDifferenceBackward;
+                  }
 
                   if (timeDifference < minDifference) {
                       minDifference = timeDifference;
@@ -142,15 +218,55 @@ useEffect(() => {
                   }
               });
 
-              // Set the closest temperature state variable
               setClosestTemperature(closestEntry);
           })
           .catch(error => {
-              console.error('Error fetching temperature:', error);
+              console.error('Error fetching data:', error);
           });
   }
-}, [latitude, longitude]); // Run this effect whenever latitude or longitude chang
+}, [latitude, longitude]);
 
+useEffect(() => {
+  if (closestTemperature) {
+      setWeatherCode(closestTemperature.weatherCode);
+      // Determine the weather image based on the weather code
+      const weatherImages = {
+          '0': sunIcon,
+          '1': partlyCloudyIcon,
+          '2': partlyCloudyIcon,
+          '3': partlyCloudyIcon,
+          '45': fogIcon,
+          '48': fogIcon,
+          '51': drizzleIcon,
+          '53': drizzleIcon,
+          '55': drizzleIcon,
+          '61': heavyRainIcon,
+          '63': heavyRainIcon,
+          '65': heavyRainIcon,
+          '80': heavyRainIcon,
+          '81': heavyRainIcon,
+          '82': heavyRainIcon,
+          '66': sleetIcon,
+          '67': sleetIcon,
+          '56': snowIcon,
+          '57': snowIcon,
+          '71': snowIcon,
+          '73': snowIcon,
+          '75': snowIcon,
+          '77': snowIcon,
+          '85': snowIcon,
+          '86': snowIcon,
+          '95': stormIcon,
+          '96': hailIcon,
+          '99': hailIcon,
+          // Add more mappings for other weather codes
+      };
+      
+      if (weatherImages.hasOwnProperty(closestTemperature.weatherCode)) {
+          setWeatherImage(weatherImages[closestTemperature.weatherCode]);
+      }
+  }
+}, [closestTemperature]);
 
   const handleViewToggleClick = () => {
     setShowAll(!showAll);
@@ -164,11 +280,48 @@ useEffect(() => {
     setIsExpanded(!isExpanded); // Toggle the expansion state
   };
 
-  const handleLogout = () => {
-    // Implement your logout logic here
-    console.log("Logout clicked");
-  };
+  const handleTimeInterval = (interval) => {
+    switch (interval) {
+        case '1d':
+            // Handle 1 day interval
+            break;
+        case '5d':
+            // Handle 5 day interval
+            break;
+        case '1m':
+            // Handle 1 month interval
+            break;
+        case '6m':
+            // Handle 6 month interval
+            break;
+        case '1y':
+            // Handle 1 year interval
+            break;
+        case '5y':
+            // Handle 5 year interval
+            const temp = closePrices.slice(-1825);
+            drawChart(closePrices);
+            break;
+        case 'max':
+            // Handle maximum interval
+            drawChart(closePrices);
+            break;
+        default:
+            // Handle default case
+            break;
+    }
+
+     // Redraw the chart after handling the interval
+};
+
   
+  
+  const buttonStyle = {
+    backgroundColor: '#1976D2',
+    color: 'white',
+    borderRight: '1px solid #AAAAAA', // Change the color here
+  };
+
   function getOrdinalSuffix(day) {
     if (day >= 11 && day <= 13) {
       return 'th';
@@ -181,8 +334,44 @@ useEffect(() => {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      history.push(`/`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const drawChart = (prices) => {
+    if (prices && prices.length > 0) {
+        const ctx = chartRef.current.getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: prices.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Closing Prices',
+                    data: prices,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    }
+};
+
+
   return (
-    <div  className="custom-grid">
+    <div className="custom-grid">
          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px", backgroundColor: "transparent" }}>
   <div style={{ display: "flex", alignItems: "center", paddingRight: "20px" }}>
     {/* Text and image to the left */}
@@ -190,7 +379,7 @@ useEffect(() => {
                       variant="h5"
                       style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem",  whiteSpace: 'nowrap'}}
                       sx={{
-                        marginLeft: "20px",
+                        marginLeft: "10px",
                         marginRight: "17.5px",
                         fontWeight : "bold",
                       }}
@@ -203,29 +392,34 @@ useEffect(() => {
     
     {/* Text and circular image as profile image to the right */}
     <div style={{ display: "flex", alignItems: "center" }}>
-  <p style={{ margin: "0", fontFamily: "Avenir", color: "black" }}>
-    Welcome, Steven!
+  <p style={{fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black" }}>
+    Welcome{firstName}
   </p>
   <div style={{ borderLeft: "1px solid black", height: "25px", marginLeft: "10px", marginRight: "10px" , marginBottom:"2.5px" }}></div>
-  <p style={{ margin: "0", fontFamily: "Avenir", color: "black" , marginRight: "15px"}}>
+  <p style={{fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black" , marginRight: "12.5px"}}>
     {formattedDate}
   </p>
+  {weatherImage && (
+                                <div>
+                                    <img  src={weatherImage} alt="Weather" style={{width:"30px", height:"30px", marginRight:"5px",marginTop:"0em"}}/>
+                                </div>
+                            )}
   {closestTemperature && (
                         
-                            <p style={{ margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px" }}>{closestTemperature.temperature} °F</p>
+                            <p style={{ fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px" }}>{closestTemperature.temperature}° F</p>
                        
                     )}
 </div>
     <div style={{ position: 'relative' }}>
       <img
-        src={yourImage1}
+        src={userLogo}
         alt="Profile"
-        style={{ width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer" }}
+        style={{ width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer" , marginRight:"10px"}}
         onClick={toggleDropdown}
       />
       {dropdownVisible && (
-  <div id={styles.dropDown} style={{ position: 'absolute', top: '50px', right: '0', border: "2px solid #00000020",
-  borderColor: "#00000020", borderRadius: '5px'}}>
+  <div id={styles.dropDown} style={{ fontFamily:"Avenir", position: 'absolute', top: '40px', right: '0', border: "1px solid",
+  borderColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '5px'}}>
     <ul style={{ listStyleType: 'none', margin: '0', padding: '0' }}>
       <li style={{ padding: '10px', cursor: 'pointer' }}>Settings</li>
       <hr style={{ width: '100%', margin: '0', borderTop: '1px solid #ccc' }} /> {/* Divider */}
@@ -406,7 +600,7 @@ useEffect(() => {
                       <p style={{ fontSize: '15px', marginBottom: '-2px' , fontWeight: 500}}>Avg Neu: <span style={{ fontSize: '20px' , marginLeft: '5px' }}>{ stockData["Neu"].toFixed(7)}</span></p>
                       <p style={{ fontSize: '15px',marginBottom: '10px', fontWeight: 500}}>Avg Neg: <span style={{ fontSize: '20px' , marginLeft: '5px'}}>{ stockData["Neg"].toFixed(7)}</span></p>
                       <Divider style={{ borderWidth: '.5px', borderColor: 'black' }} />
-                      <p style={{fontSize: '15px', marginTop: '15px', marginBottom: '0px', fontWeight: 500 }}>Compound Score: <span style={{ fontSize: '20px' , marginLeft: '5px',  color: stockData["Compound Score"].toFixed(7) >= 0.05 ? teal[500] : stockData["Compound Score"].toFixed(7) <= -0.05 ? decreasedRed : 'grey'}} >{stockData["Compound Score"].toFixed(7)}</span></p>
+                      <p style={{fontSize: '15px', marginTop: '15px', marginBottom: '0px', fontWeight: 500, whiteSpace: 'nowrap' }}>Total Compound Score: <span style={{ fontSize: '20px' , marginLeft: '5px',  color: stockData["Compound Score"].toFixed(7) >= 0.05 ? teal[500] : stockData["Compound Score"].toFixed(7) <= -0.05 ? decreasedRed : 'grey' }} >{stockData["Compound Score"].toFixed(7)}</span></p>
                     </div>
                 
                     {/* Image section */}
@@ -420,6 +614,23 @@ useEffect(() => {
                       <img src={yourImage2} style={{ width: '40%', height: 'auto', marginLeft: '-30px' , marginTop: '57.5px' }} />
                     )}
                   </div>
+
+                  <div>
+  <h2>Price Chart</h2>
+  <canvas ref={chartRef} width="400" height="200"></canvas>
+  <div style={{ marginTop: '5px' }}>
+    <ButtonGroup variant="contained" aria-label="time-intervals">
+      <Button onClick={() => handleTimeInterval('1d')} style={buttonStyle}>1d</Button>
+      <Button onClick={() => handleTimeInterval('5d')} style={buttonStyle}>5d</Button>
+      <Button onClick={() => handleTimeInterval('1m')} style={buttonStyle}>1m</Button>
+      <Button onClick={() => handleTimeInterval('6m')} style={buttonStyle}>6m</Button>
+      <Button onClick={() => handleTimeInterval('1y')} style={buttonStyle}>1y</Button>
+      <Button onClick={() => handleTimeInterval('5y')} style={buttonStyle}>5y</Button>
+      <Button onClick={() => handleTimeInterval('max')} style={{ ...buttonStyle, borderRight: 'none' }}>Max</Button>
+    </ButtonGroup>
+  </div>
+</div>
+                  
                 </Box>
                 
               ) : (
