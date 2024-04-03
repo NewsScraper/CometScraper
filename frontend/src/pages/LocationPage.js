@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect , useRef} from 'react';
+import { render } from "react-dom";
+import "./Location.css";
 import sunIcon from '../components/icons8-sun-50.png';
 import partlyCloudyIcon from '../components/icons8-partly-cloudy-day-50.png';
 import hailIcon from '../components/icons8-hail-50.png';
@@ -8,6 +10,11 @@ import sleetIcon from '../components/icons8-sleet-50.png';
 import heavyRainIcon from '../components/icons8-heavy-rain-50.png';
 import drizzleIcon from '../components/icons8-light-rain-50.png';
 import fogIcon from '../components/icons8-cloud-50.png';
+import Connector from 'react-svg-connector';
+import styled from 'styled-components';
+
+// if you want to use core connector components
+import { SConnector, LineConnector, NarrowSConnector } from 'react-svg-connector';
 
 function LocationPage() {
     const [latitude, setLatitude] = useState(null);
@@ -17,6 +24,11 @@ function LocationPage() {
     const [weatherCode, setWeatherCode] = useState(null);
     const [weatherImage, setWeatherImage] = useState(null);
     const [displayedWeatherImages, setDisplayedWeatherImages] = useState([]);
+    const ref1 = useRef(null);
+    const ref2 = useRef(null);
+
+  const [draw, redraw] = useState(0);
+
 
     // Define weatherImages within the component scope
     const weatherImages = {
@@ -124,6 +136,35 @@ function LocationPage() {
             }
         }
     }, [closestTemperature, weatherImages]);
+
+    const Wrapper = styled.div`
+  position: relative;
+  height: 100vh;
+  overflow: auto;
+`;
+
+const Box = styled.div`
+  width: 150px;
+  height: 50px;
+  cursor: pointer;
+`;
+
+const Box1 = styled(Box)`
+  background-color: green;
+  position: relative;
+  top: 200px;
+  left: 200px;
+`;
+
+const Box2 = styled(Box)`
+  background-color: red;
+  position: relative;
+  top: 100px;
+  left: 500px;
+`;
+
+
+
     
 
     return (
@@ -162,6 +203,19 @@ function LocationPage() {
                     
                 </div>
             )}
+        <Wrapper>
+      <Connector
+  style={{ }} // Adjust the marginBottom value as needed
+  el1={ref1.current}
+        el2={ref2.current}
+        shape="narrow-s"
+        direction="r2r" // "l2l", "r2r", "l2l"
+        roundCorner={true}
+        endArrow={true}
+      />
+      <Box1 ref={ref1} />
+      <Box2 ref={ref2} />
+    </Wrapper>
         </div>
     );
 }

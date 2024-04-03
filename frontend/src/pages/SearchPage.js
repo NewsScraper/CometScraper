@@ -311,11 +311,28 @@ function SearchPage() {
       filteredSuggestions = originalSuggestions
         .filter(line => line.toLowerCase().startsWith(inputValue.toLowerCase()))
         .sort((a, b) => a.length - b.length); // Sort by the length of the stock names
+
+        const lowerCaseInput = inputValue.toLowerCase();
+        const exactMatchIndex = originalSuggestions.findIndex(line => {
+          // Extract the first string from each line
+          const firstString = line.split(',')[0].trim().toLowerCase();
+          return firstString === lowerCaseInput;
+        });
+
+        if(exactMatchIndex !== -1){
+          const exactMatch = originalSuggestions[exactMatchIndex];
+
+          // Remove any duplicates of the exact match from filteredSuggestions
+          filteredSuggestions = filteredSuggestions.filter(item => item !== exactMatch);
+
+          // Add the exact match to the beginning of filteredSuggestions
+          filteredSuggestions.unshift(exactMatch);
+        }
   
       // Show only the top 5 most common suggestions
       filteredSuggestions = filteredSuggestions.slice(0, 5);
     }
-  
+
     setFilteredSuggestions(filteredSuggestions);
   };
 

@@ -66,6 +66,7 @@ function ResultsPage() {
   const [firstName, setFirstName] = useState('');
   const [closePrices, setClosePrices] = useState([]);
   const chartRef = useRef(null); // Reference to the chart canvas element
+  const [isGraphVisible, setIsGraphVisible] = useState(false); // State to track if the graph is visible
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -75,6 +76,14 @@ function ResultsPage() {
   const dayOfMonth = currentDate.getDate();
 
   const formattedDate = `${dayOfWeek}, ${month} ${dayOfMonth}${getOrdinalSuffix(dayOfMonth)}`;
+
+
+  const box1Ref = useRef(null);
+  const box2Ref = useRef(null);
+  const box3Ref = useRef(null);
+  const box4Ref = useRef(null);
+  const [line1Coordinates, setLine1Coordinates] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  const [line2Coordinates, setLine2Coordinates] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
 
 
   useEffect(() => {
@@ -139,7 +148,7 @@ function ResultsPage() {
           if (sentimentData && sentimentData["Articles"]) {
             setNewsItems(
               sentimentData["Articles"].map((article) => {
-                const { title, score, href, info, date } = article; // Extract title score and href from the article object
+                const { title, score, href, info, date } = article;
                 return {
                   title,
                   date: date, 
@@ -153,15 +162,15 @@ function ResultsPage() {
           console.log(sentimentData["Close Prices"])
           if (sentimentData && sentimentData["Close Prices"]) {
             setClosePrices(sentimentData["Close Prices"]);
+            drawChart(sentimentData["Close Prices"]); // Move drawChart here
           }
-          drawChart(closePrices);
-        
         })
         .catch((error) => {
           console.error("Error:", error);
         });
     }
-  }, [stockTicker, closePrices]);
+  }, [stockTicker]); // Only stockTicker as dependency
+  
 
   useEffect(() => {
     // Check if the Geolocation API is available in the browser
@@ -284,23 +293,33 @@ useEffect(() => {
     switch (interval) {
         case '1d':
             // Handle 1 day interval
+            const oned = closePrices.slice(-2);
+            drawChart(oned);
             break;
         case '5d':
             // Handle 5 day interval
+            const fived = closePrices.slice(-5);
+            drawChart(fived);
             break;
         case '1m':
             // Handle 1 month interval
+            const onem = closePrices.slice(-31);
+            drawChart(onem);
             break;
         case '6m':
             // Handle 6 month interval
+            const sixm = closePrices.slice(-183);
+            drawChart(sixm);
             break;
         case '1y':
             // Handle 1 year interval
+            const oney = closePrices.slice(-365);
+            drawChart(oney);
             break;
         case '5y':
             // Handle 5 year interval
-            const temp = closePrices.slice(-1825);
-            drawChart(closePrices);
+            const fivey = closePrices.slice(-1825);
+            drawChart(fivey);
             break;
         case 'max':
             // Handle maximum interval
@@ -313,8 +332,6 @@ useEffect(() => {
 
      // Redraw the chart after handling the interval
 };
-
-  
   
   const buttonStyle = {
     backgroundColor: '#1976D2',
@@ -343,391 +360,542 @@ useEffect(() => {
     }
   };
 
+  useEffect(() => {
+    if (isGraphVisible) {
+      drawChart(closePrices);
+    }
+  }, [isGraphVisible, closePrices]);
+
+  const handleBox1Click = () => {
+    setIsGraphVisible(!isGraphVisible); // Toggle the visibility of the graph
+  };
+
   const drawChart = (prices) => {
     if (prices && prices.length > 0) {
-        const ctx = chartRef.current.getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: prices.map((_, index) => index + 1),
-                datasets: [{
-                    label: 'Closing Prices',
-                    data: prices,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
+      const ctx = chartRef.current.getContext('2d');
+      let myChart = chartRef.current.myChart; // Get the reference to the previous chart instance
+      const lastIndex = prices.length; // Get the last index
+
+      if (myChart) {
+        myChart.destroy(); // Destroy the previous chart instance
+      }
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: prices.map((_, index) => lastIndex - index), // Reverse labels
+          datasets: [{
+            label: '$',
+            data: prices,
+            backgroundColor: 'rgba(75, 192, 192, 0.4)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            fill: true,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Days Ago',
+              },
             },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: false
-                    }
-                }
+            y: {
+              beginAtZero: false,
+              title: {
+                display: false,
+                text: 'Price (USD)',
+              },
+            },
+           
+          },
+          events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
+          plugins: {
+            legend: {
+              display: false // Hide the legend
             }
-        });
+          }
+        },
+        interaction: {
+          mode: 'index', // Set interaction mode if needed
+          intersect: false // Disable point intersection
+        }
+      });
+      chartRef.current.myChart = myChart; // Store the reference to the new chart instance
     }
-};
-
-
-  return (
-    <div className="custom-grid">
-         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px", backgroundColor: "transparent" }}>
-  <div style={{ display: "flex", alignItems: "center", paddingRight: "20px" }}>
-    {/* Text and image to the left */}
-    <Typography
-                      variant="h5"
-                      style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem",  whiteSpace: 'nowrap'}}
-                      sx={{
-                        marginLeft: "10px",
-                        marginRight: "17.5px",
-                        fontWeight : "bold",
-                      }}
-                    >
-                      CometScraper
-                    </Typography>
-    <img src={fintechLogo} alt="Logo" style={{ width: "100px", height: "35px", borderRadius: "0%" }} />
-  </div>
-  <div style={{ display: "flex", alignItems: "center" } }>
+  };
+  
+  
+  useEffect(() => {
+    if (box1Ref.current && box2Ref.current) {
+        const box1Rect = box1Ref.current.getBoundingClientRect();
+        const box2Rect = box2Ref.current.getBoundingClientRect();
+      
+        // Calculate the middle of the right edge of box1
+        let x1 = box1Rect.right;
+        let y1 = box1Rect.top + box1Rect.height / 2 - 80;
     
-    {/* Text and circular image as profile image to the right */}
-    <div style={{ display: "flex", alignItems: "center" }}>
-  <p style={{fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black" }}>
-    Welcome{firstName}
-  </p>
-  <div style={{ borderLeft: "1px solid black", height: "25px", marginLeft: "10px", marginRight: "10px" , marginBottom:"2.5px" }}></div>
-  <p style={{fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black" , marginRight: "12.5px"}}>
-    {formattedDate}
-  </p>
-  {weatherImage && (
-                                <div>
-                                    <img  src={weatherImage} alt="Weather" style={{width:"30px", height:"30px", marginRight:"5px",marginTop:"0em"}}/>
-                                </div>
-                            )}
-  {closestTemperature && (
-                        
-                            <p style={{ fontWeight:500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px" }}>{closestTemperature.temperature}° F</p>
-                       
-                    )}
-</div>
-    <div style={{ position: 'relative' }}>
-      <img
-        src={userLogo}
-        alt="Profile"
-        style={{ width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer" , marginRight:"10px"}}
-        onClick={toggleDropdown}
-      />
-      {dropdownVisible && (
-  <div id={styles.dropDown} style={{ fontFamily:"Avenir", position: 'absolute', top: '40px', right: '0', border: "1px solid",
-  borderColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '5px'}}>
-    <ul style={{ listStyleType: 'none', margin: '0', padding: '0' }}>
-      <li style={{ padding: '10px', cursor: 'pointer' }}>Settings</li>
-      <hr style={{ width: '100%', margin: '0', borderTop: '1px solid #ccc' }} /> {/* Divider */}
-      <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleLogout}>Logout</li>
-    </ul>
-  </div>
-)}
+        // Calculate the middle of the left edge of box2
+        let x2 = box2Rect.left;
+        let y2 = box2Rect.top + box2Rect.height / 2;
 
-    </div>
-  </div>
-</div>
-
+        // Update the state with the line coordinates
+        setLine1Coordinates({ x1, y1, x2, y2 });
+    }
     
-    <div style={{ fontFamily: "Avenir", color: "black", textAlign: "center", height: "100vh", display: "flex", flexDirection: "column", paddingTop: "20px" }}>
-      <div style={{ height: "calc(100% - 50px)", display: "grid", gridTemplateRows: "1fr 1fr", gridTemplateColumns: "1fr 1fr", gap: "0px" }}>
-        <div style={{ border: "0px solid black", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {
-            <div className="content-container">
-            {stockData ? (
-              <Box
-              id={styles.accountCard}
+    if (box3Ref.current && box4Ref.current) {
+        const box3Rect = box3Ref.current.getBoundingClientRect();
+        const box4Rect = box4Ref.current.getBoundingClientRect();
+    
+        // Calculate the middle of the right edge of box3
+        let x1 = box3Rect.right;
+        let y1 = box3Rect.top + box3Rect.height / 2 - 80;
+    
+        // Calculate the middle of the left edge of box4
+        let x2 = box4Rect.left;
+        let y2 = box4Rect.top + box4Rect.height / 2;
+
+        // Update the state with the line coordinates
+        setLine2Coordinates({ x1, y1, x2, y2 });
+    }
+}, [isGraphVisible, isExpanded, box1Ref, box2Ref, box3Ref, box4Ref]);
+
+
+
+
+  return (      
+      <div className="custom-grid" style={{ overflowY: "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: "20px", paddingRight: "20px", paddingTop: "20px", backgroundColor: "transparent" }}>
+          <div style={{ display: "flex", alignItems: "center", paddingRight: "20px" }}>
+            <Typography
+              variant="h5"
+              style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem", whiteSpace: 'nowrap' }}
               sx={{
-                width: "fit-content", // Adjust the width as needed
-                borderRadius: 3,
-                border: "2px solid #00000020",
-                borderColor: "#00000020",
-                marginBottom: '5%',
-                borderWidth: 3,
-                padding: '10px', // Add padding
-                display: 'flex',
-                alignItems: 'center', // Center the content vertically
+                marginLeft: "10px",
+                marginRight: "17.5px",
+                fontWeight: "bold",
               }}
-              className="overflow-y-scroll overflow-x-hidden"
-             >
-              {/* Content container */}
-              <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px', marginBottom: '8px', marginRight: '20px' }}>
-                {/* First Column (Stock Name) */}
-                <div style={{ marginTop: '-12px', marginLeft: '18px' }}>
-                  <h1 style={{ fontSize: "32px", marginBottom: 0 }}>{stockTicker.toUpperCase()}</h1>
-                </div>
-             
-                {/* Arrow */}
-                <div style={{ marginTop: '2px', marginLeft: '7.5px' }}>
-                  {/* Arrow Images */}
-                  {stockData && (
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {stockData["dChange"] > 0 && (
-                        <img src={upArrow} alt="Up Arrow" style={{ height: "50px", width: "auto" }} />
-                      )}
-                      {stockData["dChange"] < 0 && (
-                        <img src={downArrow} alt="Down Arrow" style={{ height: "50px", width: "auto" }} />
-                      )}
-                    </div>
-                  )}
-                </div>
-             
-                {/* Third Column (Value, dChange, and pChange) */}
-                <div style={{ marginLeft: '2px' }}>
-                  {stockData && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <p style={{ fontSize: "22px", whiteSpace: 'nowrap', marginBottom: '10px', marginTop:'15px' }}>
-                        {stockData["Value"].toFixed(2)}  <span style={{ fontSize: '15px', color: grey[600] }}>USD</span>
-                      </p>
-                      <p style={{ fontSize: "16px", whiteSpace: 'nowrap', marginBottom: '10px', marginTop:'-5px', marginLeft: '-5px' , color: stockData["dChange"].toFixed(2) < 0 ? decreasedRed : teal[500]}}>
-                        {stockData["dChange"] > 0 ? `+${stockData["dChange"].toFixed(2)}` : stockData["dChange"].toFixed(2)} ({Math.abs(stockData["pChange"]).toFixed(2)}%)
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-             </Box>
-              
-            ) : (
-              <p>Loading...</p>
-            )}
+            >
+              CometScraper
+            </Typography>
+            <img src={fintechLogo} alt="Logo" style={{ width: "100px", height: "35px", borderRadius: "0%" }} />
           </div>
-          }
-        </div>
-        <div style={{ border: "0px solid black", padding: "0px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {
-            <div className="content-container">
-            {stockData ? (
-              <div
-              id={styles.accountCard}
-              style={{
-                  width: "47.5vw",
-                  borderRadius: 10,
-                  border: "2px solid #00000020",
-                  borderColor: "#00000020",
-                  paddingTop: "9.5px",
-                  marginTop: "-12.5px",
-                  paddingRight: "15px",
-                  borderWidth: 3,
-                  display: "flex",
-                  flexDirection: "column", // Set to column
-                  alignItems: "center", // Center horizontally
-                  padding: "15px", // Add padding
-                  overflow: "hidden", // Hide overflow
-                  cursor: "pointer", // Change cursor to pointer on hover
-                  maxHeight: isExpanded ? "none" : "82.5px", // Set max height based on expansion state
-              }}
-              className="overflow-y-scroll overflow-x-hidden"
-              onClick={handleBoxClick} // Toggle expansion on click
-          >
-              {/* Content container */}
-              <div
-                  style={{
-                      display: "flex",
-                      flexDirection: "column", // Change to column for text container
-                      alignItems: "flex-start", // Align text to the start
-                      textAlign: "left",
-                      width: "100%", // Take full width
-                      justifyContent: "flex-start", // Align content and image to the start
-                      overflow: "scroll",
-                      textOverflow: "ellipsis" 
-                  }}
-              >
-                  {/* Add margin to the bottom of the heading */}
-                  <h3 style={{ marginBottom: "2.5px", marginTop: "-3px", whiteSpace: "nowrap" }}>About {stockTicker.toUpperCase()}.</h3>
-                  <div style={{ overflow: "scroll", textOverflow: "ellipsis" }}>
-                      <p style={{ marginTop: "0px" , marginBottom: "-2.5px"}}>{stockData["LBS"]}</p>
-                  </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black" }}>
+                Welcome{firstName}
+              </p>
+              <div style={{ borderLeft: "1px solid black", height: "25px", marginLeft: "10px", marginRight: "10px", marginBottom: "2.5px" }}></div>
+              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "12.5px" }}>
+                {formattedDate}
+              </p>
+              {weatherImage && (
+                <div>
+                  <img src={weatherImage} alt="Weather" style={{ width: "30px", height: "30px", marginRight: "5px", marginTop: "0em" }} />
                 </div>
-              </div>
-              
-            ) : (
-              <p>Loading...</p>
-            )}
-          </div>
-          }
-        </div>
-        <div style={{ border: "0px solid black", paddingTop: "0px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {
-            <div className="content-container">
-              {stockData ? (
-                <Box
-                  id={styles.accountCard}
-                  sx={{
-                    width: "27vw",
-                    borderRadius: 3,
-                    border: 1,
-                    borderColor: "#00000020",
-                    marginBottom: '5%',
-                    borderWidth: 3,
-                    display: 'flex',
-                    flexDirection: 'column', // Set to column
-                    alignItems: 'center', // Center horizontally
-                    padding: '20px', // Add padding
-                  }}
-                  className="overflow-y-scroll overflow-x-hidden"
-                >
-                  {/* Content container */}
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "row", // Set to row
-                      alignItems: "flex-start", // Align content to the top
-                      textAlign: "left",
-                      width: "100%", // Take full width
-                      justifyContent: "flex-start", // Align content and image to the start
-                    }}
-                  >
-                    <div style={{ width: "60%", marginRight: '5%' }}> {/* Add right margin for spacing */}
-                    <Typography
-                      variant="h5"
-                      style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem",  whiteSpace: 'nowrap'}}
-                      sx={{
-                        marginLeft: "0%",
-                        marginBottom: "1%",
-                        fontWeight : "bold",
-                      }}
-                    >
-                      Sentiment Analysis Results
-                    </Typography>
-                      <Divider style={{ borderWidth: '.75px', marginTop: '5px'}}/>
-                      <p style={{ marginBottom: '-2px' , fontWeight: 500, color: '#1976D2'}}>{stockData["Count"]} Articles Analyzed</p>
-                      <p style={{ fontSize: '15px', marginBottom: '-2px' , fontWeight: 500}}>Avg Pos: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{ stockData["Pos"].toFixed(7)}</span></p>
-                      <p style={{ fontSize: '15px', marginBottom: '-2px' , fontWeight: 500}}>Avg Neu: <span style={{ fontSize: '20px' , marginLeft: '5px' }}>{ stockData["Neu"].toFixed(7)}</span></p>
-                      <p style={{ fontSize: '15px',marginBottom: '10px', fontWeight: 500}}>Avg Neg: <span style={{ fontSize: '20px' , marginLeft: '5px'}}>{ stockData["Neg"].toFixed(7)}</span></p>
-                      <Divider style={{ borderWidth: '.5px', borderColor: 'black' }} />
-                      <p style={{fontSize: '15px', marginTop: '15px', marginBottom: '0px', fontWeight: 500, whiteSpace: 'nowrap' }}>Total Compound Score: <span style={{ fontSize: '20px' , marginLeft: '5px',  color: stockData["Compound Score"].toFixed(7) >= 0.05 ? teal[500] : stockData["Compound Score"].toFixed(7) <= -0.05 ? decreasedRed : 'grey' }} >{stockData["Compound Score"].toFixed(7)}</span></p>
-                    </div>
-                
-                    {/* Image section */}
-                    {stockData["Overall Sentiment"] === "positive" && (
-                      <img src={yourImage} style={{ width: '35%', height: 'auto', marginLeft: '-15px' , marginTop: '67.5px' }} />
-                    )}
-                    {stockData["Overall Sentiment"] === "neutral" && (
-                      <img src={yourImage1} style={{ width: '45%', height: 'auto', marginLeft: '-40px' , marginTop: '45px' }} />
-                    )}
-                    {stockData["Overall Sentiment"] === "negative" && (
-                      <img src={yourImage2} style={{ width: '40%', height: 'auto', marginLeft: '-30px' , marginTop: '57.5px' }} />
-                    )}
-                  </div>
-
-                  <div>
-  <h2>Price Chart</h2>
-  <canvas ref={chartRef} width="400" height="200"></canvas>
-  <div style={{ marginTop: '5px' }}>
-    <ButtonGroup variant="contained" aria-label="time-intervals">
-      <Button onClick={() => handleTimeInterval('1d')} style={buttonStyle}>1d</Button>
-      <Button onClick={() => handleTimeInterval('5d')} style={buttonStyle}>5d</Button>
-      <Button onClick={() => handleTimeInterval('1m')} style={buttonStyle}>1m</Button>
-      <Button onClick={() => handleTimeInterval('6m')} style={buttonStyle}>6m</Button>
-      <Button onClick={() => handleTimeInterval('1y')} style={buttonStyle}>1y</Button>
-      <Button onClick={() => handleTimeInterval('5y')} style={buttonStyle}>5y</Button>
-      <Button onClick={() => handleTimeInterval('max')} style={{ ...buttonStyle, borderRight: 'none' }}>Max</Button>
-    </ButtonGroup>
-  </div>
-</div>
-                  
-                </Box>
-                
-              ) : (
-                <p>Loading...</p>
+              )}
+              {closestTemperature && (
+  
+                <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px" }}>{closestTemperature.temperature}° F</p>
+  
               )}
             </div>
-          }
+            <div style={{ position: 'relative' }}>
+              <img
+                src={userLogo}
+                alt="Profile"
+                style={{ width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer", marginRight: "10px" }}
+                onClick={toggleDropdown}
+              />
+              {dropdownVisible && (
+                <div id={styles.dropDown} style={{ fontFamily: "Avenir", position: 'absolute', top: '40px', right: '0', border: "1px solid", borderColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '5px' }}>
+                  <ul style={{ listStyleType: 'none', margin: '0', padding: '0' }}>
+                    <li style={{ padding: '10px', cursor: 'pointer' }}>Settings</li>
+                    <hr style={{ width: '100%', margin: '0', borderTop: '1px solid #ccc' }} /> {/* Divider */}
+                    <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleLogout}>Logout</li>
+                  </ul>
+                </div>
+              )}
+  
+            </div>
+          </div>
         </div>
-        <div style={{ border: "0px solid black", padding: "0px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {
-            <div className="flex flex-col mx-8">
-              <div
-                className="rounded-3xl border-2 border-gray-200 flex flex-col p-8"
-                id={styles.accountCard}
-              ></div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  marginTop: "5%",
-                  justifyContent: "center", // Center the child elements horizontally
-                }}
-              >
-              {stockData ? (
-                <Box
-                  id={styles.accountCard}
-                  sx={{
-                    width: "42.5vw",
-                    borderRadius: 3,
-                    border: 1,
-                    borderColor: "#00000020",
-                    marginBottom: '5%',
-                    borderWidth: 3,
-                  }}
-                  className="overflow-y-scroll overflow-x-hidden"
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "left",
-                      textAlign: "left",
-                      marginRight: "5%",
-                      marginLeft: "3.75%",
-                      marginTop: "3.5%",
-                      marginBottom: "2.5%",
-                      width: "90%",
-                    }}
-                  >
-                    <Typography
-                      variant="h5"
-                      style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem", }}
-                      sx={{
-                        marginLeft: "0%",
-                        marginBottom: "1%",
-                        fontWeight : "bold",
+       
+
+        <div style={{ fontFamily: "Avenir", color: "black", textAlign: "center", height: "90vh", display: "flex", flexDirection: "column", paddingTop: "20px" }}>
+          <div style={{ position: "relative", height: "calc(100%)", display: "grid", gridTemplateRows: "1fr 1fr", gridTemplateColumns: "1fr 1fr", gap: "0px" }}>
+          
+          <svg width="100%" height="100%" style={{  position: 'absolute', top: 0, left: 0, zIndex: -4 }}>
+    {/* Render the lines using the calculated coordinates */}
+    {/* Main line from box1 to box2 */}
+    <line x1={line1Coordinates.x1} y1={line1Coordinates.y1} x2={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} y2={line1Coordinates.y1} style={{ stroke: '#00827e', strokeWidth:2 }} />
+    <path 
+        d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1} 
+            C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
+              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${(line1Coordinates.y1 - (isExpanded? 30:15))},
+              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${(line1Coordinates.y1 - (isExpanded? 30:15))}`}
+        style={{ stroke: '#00827e', fill: 'none', strokeWidth:2 }} 
+    />
+    {<line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 - (isExpanded? 30:15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 - (isExpanded? 30:15)} style={{ stroke: '#00827e', strokeWidth:2 }} /> }
+    <path 
+    d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1} 
+        C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
+          ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${(line1Coordinates.y1 + (isExpanded? 30:15))},
+          ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${(line1Coordinates.y1 + (isExpanded? 30:15))}`}
+    style={{ stroke: '#00827e', fill: 'none', strokeWidth:2 }} 
+    />
+    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 + (isExpanded? 30:15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 + (isExpanded? 30:15)} style={{ stroke: '#00827e', strokeWidth:2 }} />
+
+    
+
+</svg>
+<svg width="100%" height="100%" style={{ position: 'absolute', top: -40, left: 0, zIndex: -4 }}>
+    {/* Render the lines using the calculated coordinates */}
+    {/* Main line from box1 to box2 */}
+    <line x1={line2Coordinates.x2} y1={line2Coordinates.y1} x2={(line2Coordinates.x1 + line2Coordinates.x2) / 2.05} y2={line2Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+    <path
+        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
+            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
+              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 - (showAll ? 30 : 15)},
+              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 - (showAll ? 30 : 15)}`}
+        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+    />
+    {<line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 - (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 - (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />}
+    <path
+        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
+            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
+              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 + (showAll ? 30 : 15)},
+              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 + (showAll ? 30 : 15)}`}
+        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+    />
+    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 + (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 + (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+</svg>
+
+            <div style={{ marginTop: "5px", paddingBottom: "150px", border: "0px solid black", display: "flex", alignItems: "center", justifyContent: "center", height: "60%" }}>
+              {
+                <div className="content-container"  >
+                  {stockData && isGraphVisible ? (
+                    <div>
+                      <h2>Price Chart</h2>
+                      <Box
+                        ref={box1Ref}
+                        id={styles.accountCard}
+                        sx={{
+                          width: "fit-content",
+                          borderRadius: 3,
+                          border: "2px solid #00000020",
+                          borderColor: "#00000020",
+                          marginBottom: '5%',
+                          borderWidth: 3,
+                          padding: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                        className="overflow-y-scroll overflow-x-hidden"
+                      >
+                        <div>
+                          <canvas onClick={handleBox1Click} ref={chartRef} width="400" height="200"></canvas>
+                          <div style={{ marginTop: '5px' }}>
+                            <ButtonGroup variant="contained" aria-label="time-intervals">
+                              <Button onClick={() => handleTimeInterval('1d')}>1d</Button>
+                              <Button onClick={() => handleTimeInterval('5d')}>5d</Button>
+                              <Button onClick={() => handleTimeInterval('1m')}>1m</Button>
+                              <Button onClick={() => handleTimeInterval('6m')}>6m</Button>
+                              <Button onClick={() => handleTimeInterval('1y')}>1y</Button>
+                              <Button onClick={() => handleTimeInterval('5y')}>5y</Button>
+                              <Button onClick={() => handleTimeInterval('max')} style={{ borderRight: 'none' }}>Max</Button>
+                            </ButtonGroup>
+                          </div>
+                        </div>
+                      </Box>
+                    </div>
+                  ) : (
+                    <div className="content-container" onClick={handleBox1Click}>
+                      {stockData && !isGraphVisible ? (
+                        <Box
+                          ref={box1Ref}
+                          id={styles.accountCard}
+                          sx={{
+                            width: "fit-content",
+                            borderRadius: 3,
+                            border: "2px solid #00000020",
+                            borderColor: "#00000020",
+                            marginBottom: '5%',
+                            borderWidth: 3,
+                            padding: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          className="overflow-y-scroll overflow-x-hidden"
+                        >
+                          {/* Content container */}
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '4px', marginBottom: '8px', marginRight: '20px' }}>
+                            {/* First Column (Stock Name) */}
+                            <div style={{ marginTop: '-12px', marginLeft: '18px' }}>
+                              <h1 style={{ fontSize: "32px", marginBottom: 0 }}>{stockTicker.toUpperCase()}</h1>
+                            </div>
+                            {/* Arrow */}
+                            <div style={{ marginTop: '2px', marginLeft: '7.5px' }}>
+                              {/* Arrow Images */}
+                              {stockData && (
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                  {stockData["dChange"] > 0 && (
+                                    <img src={upArrow} alt="Up Arrow" style={{ height: "50px", width: "auto" }} />
+                                  )}
+                                  {stockData["dChange"] < 0 && (
+                                    <img src={downArrow} alt="Down Arrow" style={{ height: "50px", width: "auto" }} />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {/* Third Column (Value, dChange, and pChange) */}
+                            <div style={{ marginLeft: '2px' }}>
+                              {stockData && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                  <p style={{ fontSize: "22px", whiteSpace: 'nowrap', marginBottom: '10px', marginTop: '15px' }}>
+                                    {stockData["Value"].toFixed(2)}  <span style={{ fontSize: '15px', color: grey[600] }}>USD</span>
+                                  </p>
+                                  <p style={{ fontSize: "16px", whiteSpace: 'nowrap', marginBottom: '10px', marginTop: '-5px', marginLeft: '-5px', color: stockData["dChange"].toFixed(2) < 0 ? decreasedRed : teal[500] }}>
+                                    {stockData["dChange"] > 0 ? `+${stockData["dChange"].toFixed(2)}` : stockData["dChange"].toFixed(2)} ({Math.abs(stockData["pChange"]).toFixed(2)}%)
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Box>
+                      ) : (
+                        <p>Loading...</p>
+                      )}
+                    </div>
+                  )}
+  
+                </div>
+              }
+            </div>
+            <div style={{ marginBottom: "5em", border: "0px solid black", padding: "0px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {
+                <div className="content-container" style={{ marginTop: "4em", paddingBottom: "127.75px", }}>
+                  {stockData ? (
+                    <div
+                      ref={box2Ref}
+                      id={styles.accountCard}
+                      style={{
+                        width: "47.5vw",
+                        borderRadius: 10,
+                        border: "2px solid #00000020",
+                        borderColor: "#00000020",
+                        paddingTop: "15px",
+                        marginTop: "-12.5px",
+                        paddingRight: "15px",
+                        paddingLeft: "15px",
+                        paddingBottom: isExpanded? "10px": "6px",
+                        borderWidth: 3,
+                        display: "flex",
+                        flexDirection: "column", // Set to column
+                        alignItems: "center", // Center horizontally
+                        overflow: "clip", // Hide overflow
+                        cursor: "pointer", // Change cursor to pointer on hover
+                        maxHeight: isExpanded ? "none" : "82.5px", // Set max height based on expansion state
                       }}
+                      className="overflow-y-scroll overflow-x-hidden"
+                      onClick={handleBoxClick} // Toggle expansion on click
                     >
-                      Scraped Articles
-                    </Typography>
-                    <Divider orientation="horizontal" sx={{ width: "100%" }} />
-                    {newsItems
-                      .slice(0, showAll ? newsItems.length : 3) // Display all articles if showAll is true, else display 3
-                      .map((news, id) => (
-                        <HomeNewsRow key={id} news={news} />
-                      ))}
-                    {newsItems.length > 3 && (
+                      {/* Content container */}
                       <div
                         style={{
                           display: "flex",
-                          width: "100%",
-                          justifyContent: "center",
+                          flexDirection: "column", // Change to column for text container
+                          alignItems: "flex-start", // Align text to the start
+                          textAlign: "left",
+                          width: "100%", // Take full width
+                          justifyContent: "flex-start", // Align content and image to the start
+                          overflow: "scroll",
+                          textOverflow: "ellipsis"
                         }}
                       >
-                        <Button
-                          variant="text"
-                          style={{ fontFamily: "Avenir" }}
-                          onClick={handleViewToggleClick}
-                          sx={{ marginTop: "1%", marginBottom: "-12.5px" }}
-                        >
-                          {showAll ? "View Less" : "View More"}
-                        </Button>
+                        {/* Add margin to the bottom of the heading */}
+                        <h3 style={{ marginBottom: "2.5px", marginTop: "-3px", whiteSpace: "nowrap" }}>About {stockTicker.toUpperCase()}.</h3>
+                        <div style={{ overflow: "scroll", textOverflow: "ellipsis" }}>
+                          <p style={{ marginTop: "0px", marginBottom: "-2.5px" }}>{stockData["LBS"]}</p>
+                        </div>
                       </div>
+                    </div>
+  
+                  ) : (
+                    <p>Loading...</p>
+                  )}
+                </div>
+              }
+            </div>
+            <div style={{ height: "70%", border: "0px solid black", display: "flex", justifyContent: "center", transform: "translateY(-110px)" }}>
+              {
+                <div className="content-container" style={{}} >
+                  {stockData ? (
+                    <Box
+                      ref={box3Ref}
+                      id={styles.accountCard}
+                      sx={{
+                        width: "27vw",
+                        borderRadius: 3,
+                        border: 1,
+                        borderColor: "#00000020",
+                        marginBottom: '5%',
+                        borderWidth: 3,
+                        display: 'flex',
+                        flexDirection: 'column', // Set to column
+                        alignItems: 'center', // Center horizontally
+                        padding: '20px', // Add padding
+                      }}
+                      className="overflow-y-scroll overflow-x-hidden"
+                    >
+                      {/* Content container */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "row", // Set to row
+                          alignItems: "flex-start", // Align content to the top
+                          textAlign: "left",
+                          width: "100%", // Take full width
+                          justifyContent: "flex-start", // Align content and image to the start
+                        }}
+                      >
+                        <div style={{ width: "60%", marginRight: '5%' }}> {/* Add right margin for spacing */}
+                          <Typography
+                            variant="h5"
+                            style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem", whiteSpace: 'nowrap' }}
+                            sx={{
+                              marginLeft: "0%",
+                              marginBottom: "1%",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Sentiment Analysis Results
+                          </Typography>
+                          <Divider style={{ borderWidth: '.75px', marginTop: '5px' }} />
+                          <p style={{ marginBottom: '-2px', fontWeight: 500, color: '#1976D2' }}>{stockData["Count"]} Articles Analyzed</p>
+                          <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Avg Pos: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Pos"].toFixed(7)}</span></p>
+                          <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Avg Neu: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Neu"].toFixed(7)}</span></p>
+                          <p style={{ fontSize: '15px', marginBottom: '10px', fontWeight: 500 }}>Avg Neg: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Neg"].toFixed(7)}</span></p>
+                          <Divider style={{ borderWidth: '.5px', borderColor: 'black' }} />
+                          <p style={{ fontSize: '15px', marginTop: '15px', marginBottom: '0px', fontWeight: 500, whiteSpace: 'nowrap' }}>Total Compound Score: <span style={{ fontSize: '20px', marginLeft: '5px', color: stockData["Compound Score"].toFixed(7) >= 0.05 ? teal[500] : stockData["Compound Score"].toFixed(7) <= -0.05 ? decreasedRed : 'grey' }}>{stockData["Compound Score"].toFixed(7)}</span></p>
+                        </div>
+  
+                        {/* Image section */}
+                        {stockData["Overall Sentiment"] === "positive" && (
+                          <img src={yourImage} style={{ width: '35%', height: 'auto', marginLeft: '-15px', marginTop: '67.5px' }} />
+                        )}
+                        {stockData["Overall Sentiment"] === "neutral" && (
+                          <img src={yourImage1} style={{ width: '45%', height: 'auto', marginLeft: '-40px', marginTop: '45px' }} />
+                        )}
+                        {stockData["Overall Sentiment"] === "negative" && (
+                          <img src={yourImage2} style={{ width: '40%', height: 'auto', marginLeft: '-30px', marginTop: '57.5px' }} />
+                        )}
+                      </div>
+  
+                    </Box>
+  
+                  ) : (
+                    <p>Loading...</p>
+                  )}
+                </div>
+              }
+            </div>
+            <div style={{ height: "70%", transform: "translateY(-100px)", border: "0px solid black", display: "flex", justifyContent: "center" }}>
+              {
+                <div className="flex flex-col mx-8" style={{ transform: "translateY(-60px)" }}>
+                  <div
+                    className="rounded-3xl border-2 border-gray-200 flex flex-col p-8"
+                    id={styles.accountCard}
+                  ></div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      marginTop: "5%",
+                      justifyContent: "center", // Center the child elements horizontally
+                    }}
+                  >
+                    {stockData ? (
+                      <Box
+                        ref={box4Ref}
+                        id={styles.accountCard}
+                        sx={{
+                          width: "42.5vw",
+                          borderRadius: 3,
+                          border: 1,
+                          borderColor: "#00000020",
+                          marginBottom: '5%',
+                          borderWidth: 3,
+                        }}
+                        className="overflow-y-scroll overflow-x-hidden"
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "left",
+                            textAlign: "left",
+                            marginRight: "5%",
+                            marginLeft: "3.75%",
+                            marginTop: "3.5%",
+                            marginBottom: "2.5%",
+                            width: "90%",
+                          }}
+                        >
+                          <Typography
+                            variant="h5"
+                            style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem", }}
+                            sx={{
+                              marginLeft: "0%",
+                              marginBottom: "1%",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Scraped Articles
+                          </Typography>
+                          <Divider orientation="horizontal" sx={{ width: "100%" }} />
+                          {newsItems
+                            .slice(0, showAll ? newsItems.length : 3) // Display all articles if showAll is true, else display 3
+                            .map((news, id) => (
+                              <HomeNewsRow key={id} news={news} />
+                            ))}
+                          {newsItems.length > 3 && (
+                            <div
+                              style={{
+                                display: "flex",
+                                width: "100%",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Button
+                                variant="text"
+                                style={{ fontFamily: "Avenir" }}
+                                onClick={handleViewToggleClick}
+                                sx={{ marginTop: "1%", marginBottom: "-12.5px" }}
+                              >
+                                {showAll ? "View Less" : "View More"}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </Box>
+                    ) : (
+                      <p>Loading...</p>
                     )}
                   </div>
-                </Box>
-                 ) : (
-                  <p>Loading...</p>
-                )}
-              </div>
+                </div>
+              }
+  
             </div>
-          }
+  
+          </div> 
+  
         </div>
+  
       </div>
-    </div>
-    </div>
+
   );
+  
   
   
   

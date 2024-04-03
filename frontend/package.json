@@ -16,11 +16,14 @@
     "firebase": "^9.1.2",
     "mui": "^0.0.1",
     "react": "^18.2.0",
+    "react-connect-elements": "^0.1.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^5.3.4",
     "react-scripts": "5.0.1",
+    "react-svg-connector": "^1.0.9",
     "styled-components": "^6.1.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yarn": "^1.22.21"
   },
   "scripts": {
     "start": "react-scripts start",

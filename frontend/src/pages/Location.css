@@ -1,0 +1,49 @@
+.App {
+    font-family: sans-serif;
+    text-align: center;
+  }
+  .elements {
+    display: grid;
+    grid-template-rows: repeat(3, 100px);
+    grid-row-gap: 50px;
+    max-width: 450px;
+    box-sizing: border-box;
+    padding: 20px;
+    margin: 0 auto;
+    border-radius: 10px;
+    background: #222;
+  }
+  .elements-row {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 50px;
+  }
+  .element {
+    display: grid;
+    z-index: 11;
+    border-radius: 5px;
+  }
+  .element1 {
+    background: yellow;
+  }
+  .element2 {
+    background: orange;
+  }
+  .element3 {
+    background: red;
+  }
+  .element4 {
+    grid-column-start: 2;
+    grid-column-end: 2;
+    background: purple;
+  }
+  .element5 {
+    background: blue;
+  }
+  .element6 {
+    background: green;
+  }
+  .element7 {
+    background: teal;
+  }
+  
