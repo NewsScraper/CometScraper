@@ -97,6 +97,7 @@ function SearchPage() {
  const chartRef = useRef(null); // Reference to the chart canvas element
  const [isGraphVisible, setIsGraphVisible] = useState(false); // State to track if the graph is visible
  const [loadChart, setLoadChart] = useState(false);
+ const [heldIndex, setHeldIndex] = useState(null);
 
  const [watchlistLoading, setWatchlistLoading] = useState(true);
  const [recommendations, setRecommendations] = useState([]);
@@ -120,6 +121,7 @@ const handleSentimentViewClick = () => {
   setWatchlistVisible(false);
   setRecommendationsVisible(false);
   setSentimentViewVisible(!sentimentViewVisible);
+  setLoadChart(true);
 };
  const [watchlistArray, setWatchlistArray] = useState([]);
 
@@ -262,9 +264,9 @@ const handleSentimentViewClick = () => {
             drawChart(monthlyClosePrices1, "Date");
           }
           else {
-            const monthlyClosePrices1 = [["good",,"09-12-2024"]
+            const monthlyClosePrices1 = [["good",,"null"]
             ];
-            drawChart(monthlyClosePrices1, "Sawee no data heree");
+            drawChart(monthlyClosePrices1, "Sorry No Stored Sentiment Values, Check Back Soon");
         } 
         }
       } catch (error) {
@@ -274,7 +276,7 @@ const handleSentimentViewClick = () => {
     if(!stockTicker){
       const monthlyClosePrices1 = [["good",,"09-12-2024"]
     ];
-    drawChart(monthlyClosePrices1, "Sawee no data heree");
+    drawChart(monthlyClosePrices1, "Sorry No Stored Sentiment Values, Check Back Soon");
     }
     setLoadChart()
   };
@@ -388,13 +390,27 @@ const handleSentimentViewClick = () => {
               text: 'Sentiment', // Title text
             },
           },
-         
         },
         // Your chart options
         plugins: {
-          
           legend: {
             display: false // Hide the legend
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.dataset.data[context.dataIndex]; // Get the value of the hovered point
+                let sentimentType;
+                if (value >= 0.05) {
+                  sentimentType = 'positive';
+                } else if (value <= -0.05) {
+                  sentimentType = 'negative';
+                } else {
+                  sentimentType = 'neutral';
+                }
+                return `Sentiment: ${value} ${sentimentType}`;
+              }
+            }
           }
         }
       }
@@ -403,6 +419,7 @@ const handleSentimentViewClick = () => {
     chartRef.current.myChart = myChart; // Store the reference to the new chart instance
   }
 };
+
 
 // Custom function to format date in 'YYYY-MM-DD' format
 const formatDate = (dateString) => {
@@ -492,8 +509,9 @@ useEffect(() => {
  
  useEffect(() => {
  const uploadToDatabase = async () => {
- try {
   await updateWatchlistArray();
+
+ try {
 
  const user = await auth.currentUser;
  if (user && watchlistArray.length > 0) { // Check if watchlistArray is not empty
@@ -506,6 +524,8 @@ useEffect(() => {
  console.error('Error updating user data:', error);
  }
  };
+
+ document.body.style.overflow = 'hidden';
  
  // Call uploadToDatabase whenever watchlistArray changes
  uploadToDatabase();
@@ -870,6 +890,12 @@ const handleAddClick = async (index) => {
   }
 };
 
+const handleBoxHold = (index) => {
+  console.log(`Box held: ${index}`);
+  // Add your logic for "on hold" action here
+};
+
+
 const updateWatchlistArray = async () => {
   try {
     // Ensure watchlistArray is an array
@@ -901,6 +927,21 @@ const handleRecommendationBoxClick = (index) => {
   // Navigate to the results page with the stock ticker
   history.push(`/results?ticker=${stockTicker}`);
   
+  };
+
+  const onMouseDown = (index) => {
+    setHeldIndex(index);
+    setTimeout(() => {
+      if (heldIndex === index) {
+        handleBoxHold(index);
+      }
+    }, 500); // 1000 milliseconds (1 second) for "on hold"
+  };
+
+  const onMouseUp = () => {
+    setHeldIndex(null);
+    // Clear the hold timer when mouse button is released
+    clearTimeout();
   };
 
 
@@ -1040,7 +1081,7 @@ const handleRecommendationBoxClick = (index) => {
           if (scrollContainer) {
             scrollContainer.scrollTop = scrollContainer.scrollHeight;
           }
-        }, 100); // Adjust the delay time as needed
+        }, 100); // Adjust the delay time as neededs
       }
     }}
   >
@@ -1145,7 +1186,8 @@ const handleRecommendationBoxClick = (index) => {
  {topRowVisible ? (
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', marginTop: '2%', marginLeft: '10%', marginRight: '10%' }}>
     { !trendingLoading? (trendingArray.slice(0, topRowVisible && bottomRowVisible ? 4 : 8).map((stock, index) => (
-      <div key={index} onClick={() => topRowVisible && bottomRowVisible ? handleBothBoxClickUp(index) : handleBoxClick(index)} style={{ position: 'relative', marginTop: index >= 4 ? '32px' : '0px' }}>
+      <div key={index}onMouseDown={() => onMouseDown(index)}
+      onMouseUp={() => onMouseUp()} onClick={() => topRowVisible && bottomRowVisible ? handleBothBoxClickUp(index) : handleBoxClick(index)} style={{ position: 'relative', marginTop: index >= 4 ? '32px' : '0px' }}>
         {(index === 3) && (
           <div style={{ position: 'absolute', top: '-13%', left: '-290%', zIndex: '100', fontSize: "14.5px" }}>
             <h2>TOP GAINERS</h2>
@@ -1523,7 +1565,7 @@ const handleRecommendationBoxClick = (index) => {
                 >
                     {/* Eye symbol */}
                     <div className="eye-symbol" style={{ position: 'absolute', top: '5px', right: '5px', display: 'none', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); handleAddClick(index); }}>
-                        <img src={eyeSymbol} alt="Eye Symbol" style={{ width: '30px', height: '22.5px' }} />
+                        <img src={eyeSymbol} alt="Eye Symbol" style={{ width: '27.75px', height: '21px' }} />
                     </div>
 
                     {/* Content container */}
@@ -1576,33 +1618,46 @@ const handleRecommendationBoxClick = (index) => {
                 </Box>
             </div>
         ))}
-        {Array.from({ length: 8 - recommendations.length }).map((_, index) => (
+        {Array.from({ length: 8 - recommendations.length }).map((_, index) => {
+  // Calculate the total number of rendered boxes including the new ones
+  const totalRenderedBoxes = recommendations.length + index;
 
-            <div key={index} style={{ position: 'relative', marginTop: index >= 4 ? '32px' : '-40px' , paddingBottom:"9px"}}>
-                <Box
-                    key={index}
-                    id={styles.accountCard}
-                    sx={{
-                        width: '90%',
-                        borderRadius: 3,
-                        border: '2px solid #00000020',
-                        borderColor: '#00000020',
-                        padding: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        position: 'relative', // Add this line to make the position relative
-                    }}
-                    className="overflow-y-scroll overflow-x-hidden"
-                    style={{ height: '100px', width: '75%', marginLeft: '9%', marginTop:8 - recommendations.length ===1? '31.75%' : '8%' }}
-                    // Add the following CSS to show and hide the red x icon
-                >
-                    <div style={{ paddingTop: "40px" }}> <BouncingDotsLoader></BouncingDotsLoader>
-                    </div>
-                </Box>
-            </div>
-        ))}
+  // Calculate the marginTop based on the total number of rendered boxes
+  let marginTop;
+  if (recommendations.length === 7) {
+    marginTop = '-13.25%'; // Set marginTop to '8%' when only one box is rendered
+  } else {
+    marginTop = totalRenderedBoxes >= 4 ? '32px' : '-40px'; // Calculate marginTop as before
+  }
+
+  return (
+    <div key={index} style={{ position: 'relative', marginTop: marginTop, paddingBottom: "9px" }}>
+      <Box
+        key={index}
+        id={styles.accountCard}
+        sx={{
+          width: '90%',
+          borderRadius: 3,
+          border: '2px solid #00000020',
+          borderColor: '#00000020',
+          padding: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          cursor: 'pointer',
+          position: 'relative', // Add this line to make the position relative
+        }}
+        className="overflow-y-scroll overflow-x-hidden"
+        style={{ height: '100px', width: '75%', marginLeft: '9%', marginTop: `${8 - recommendations.length === 1 ? 31.75 : 8}%` }}
+        // Add the following CSS to show and hide the red x icon
+      >
+        <div style={{ paddingTop: "40px" }}>
+          <BouncingDotsLoader></BouncingDotsLoader>
+        </div>
+      </Box>
+    </div>
+  );
+})}
     </div>
 ) : (<div></div>)}
 

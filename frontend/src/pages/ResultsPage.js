@@ -68,6 +68,7 @@ function ResultsPage() {
   const [closePrices, setClosePrices] = useState([]);
   const chartRef = useRef(null); // Reference to the chart canvas element
   const [isGraphVisible, setIsGraphVisible] = useState(false); // State to track if the graph is visible
+  const [refresh, setRefresh] = useState(false); // State to track if the graph is visible
 
   const dateTime = currentDate.toISOString(); // Convert to ISO string format 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -167,6 +168,7 @@ function ResultsPage() {
   
             // Update newsItems here if there are articles
             if (sentimentData["Articles"].length !== 0) {
+
               setNewsItems(
                 sentimentData["Articles"].map((article) => {
                   const { title, score, href, info, date } = article;
@@ -179,9 +181,12 @@ function ResultsPage() {
                   };
                 })
               );
+              console.log(sentimentData["Articles"]);
+
             } else {
               // If there are no articles, set newsItems to an empty array
-              setNewsItems([]);
+             
+              
             }
   
             console.log(sentimentData["Close Prices"]);
@@ -225,7 +230,7 @@ function ResultsPage() {
             const currentDate = new Date().toISOString().slice(0, 10); // Get current date in "YYYY-MM-DD" format
             const hasEntryForCurrentDate = existingData.some(entry => entry[2].slice(0, 10) === currentDate);
             
-            if (!hasEntryForCurrentDate) {
+            if (!hasEntryForCurrentDate && stockTickerSentimentArray[0][1] != 0) {
                 // Append the new data to the existing data
                 existingData = existingData.concat(stockTickerSentimentArray);
                 
@@ -458,8 +463,22 @@ useEffect(() => {
   }, [isGraphVisible, closePrices]);
 
   const handleBox1Click = () => {
-    setIsGraphVisible(!isGraphVisible); // Toggle the visibility of the graph
-  };
+    
+    setTimeout(() => {
+      const scrollContainer = document.getElementById('scrollContainer');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0; // Scroll to the top
+      }
+    
+      // Call setIsGraphVisible and setRefresh after scrolling
+      setIsGraphVisible(!isGraphVisible);
+      setRefresh(!refresh);
+    }, 100); // Adjust the delay time as needed
+    
+
+};
+
+
 
   const drawChart = (prices, title) => {
     if (prices && prices.length > 0) {
@@ -571,7 +590,7 @@ useEffect(() => {
         // Update the state with the line coordinates
         setLine2Coordinates({ x1, y1, x2, y2 });
     }
-}, [isGraphVisible, isExpanded, box1Ref, box2Ref, box3Ref, box4Ref, stockData]);
+}, [isGraphVisible, isExpanded, box1Ref, box2Ref, box3Ref, box4Ref, stockData, refresh]);
 
 
 const handleHome = () => {
@@ -581,7 +600,7 @@ const handleHome = () => {
 
   return (      
 
-      <div className="custom-grid" style={{ overflowY: "auto" }}>
+      <div id="scrollContainer" className="custom-grid" style={{ overflowY: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: "20px", paddingRight: "20px", paddingTop: "20px", backgroundColor: "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", paddingRight: "20px" }}>
@@ -599,7 +618,7 @@ const handleHome = () => {
             >
               CometScraper
             </Typography>
-            <img src={fintechLogo} alt="Logo" style={{ width: "100px", height: "35px", borderRadius: "0%" }} />
+            <img src={fintechLogo} alt="Logo" style={{ width: "100px", height: "35px", borderRadius: "0%", cursor:"pointer" } }onClick={handleHome} />
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center" }}>
@@ -644,49 +663,49 @@ const handleHome = () => {
         </div>
      <div>
             {stockData? (
-        <div style={{ fontFamily: "Avenir", color: "black", textAlign: "center", height: "90vh", display: "flex", flexDirection: "column", paddingTop: "20px" }}>
-          <div style={{ position: "relative", height: "calc(100%)", display: "grid", gridTemplateRows: "1fr 1fr", gridTemplateColumns: "1fr 1fr", gap: "0px" }}>
+        <div   style={{ fontFamily: "Avenir", color: "black", textAlign: "center", height: "90vh", display: "flex", flexDirection: "column", paddingTop: "20px" }}>
+          <div  style={{ position: "relative", height: "calc(100%)", display: "grid", gridTemplateRows: "1fr 1fr", gridTemplateColumns: "1fr 1fr", gap: "0px" }}>
           
           
           {stockData ? (
             <>
                 <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: -4 }}>
-                    <line x1={line1Coordinates.x1} y1={line1Coordinates.y1} x2={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} y2={line1Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={line1Coordinates.x1} y1={line1Coordinates.y1} x2={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} y2={line1Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                     <path
                         d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1}
                             C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
                               ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${line1Coordinates.y1 - (isExpanded ? 30 : 15)},
                               ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1 - (isExpanded ? 30 : 15)}`}
-                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 2 }}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 3 }}
                     />
-                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 - (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 - (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 - (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 - (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                     <path
                         d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1}
                             C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
                               ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${line1Coordinates.y1 + (isExpanded ? 30 : 15)},
                               ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1 + (isExpanded ? 30 : 15)}`}
-                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 2 }}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 3 }}
                     />
-                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 + (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 + (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 + (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 + (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                 </svg>
                 <svg width="100%" height="100%" style={{ position: 'absolute', top: -40, left: 0, zIndex: -4 }}>
-                    <line x1={line2Coordinates.x2} y1={line2Coordinates.y1} x2={(line2Coordinates.x1 + line2Coordinates.x2) / 2.05} y2={line2Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={line2Coordinates.x2} y1={line2Coordinates.y1} x2={(line2Coordinates.x1 + line2Coordinates.x2) / 2.05} y2={line2Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                     <path
                         d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
                             C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
                               ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 - (showAll ? 30 : 15)},
                               ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 - (showAll ? 30 : 15)}`}
-                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 3 }}
                     />
-                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 - (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 - (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 - (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 - (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                     <path
                         d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
                             C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
                               ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 + (showAll ? 30 : 15)},
                               ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 + (showAll ? 30 : 15)}`}
-                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 3 }}
                     />
-                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 + (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 + (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 + (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 + (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 3 }} />
                 </svg>
             </>
             ) : (
@@ -695,7 +714,7 @@ const handleHome = () => {
 
             <div style={{ marginTop: "5px", paddingBottom: "150px", border: "0px solid black", display: "flex", alignItems: "center", justifyContent: "center", height: "60%" }}>
               {
-                <div className="content-container"  >
+                <div  className="content-container"  >
                   {stockData && isGraphVisible ? (
                     <div>
                       <h2>Price Chart</h2>
@@ -715,6 +734,10 @@ const handleHome = () => {
                           cursor: 'pointer',
                         }}
                         className="overflow-y-scroll overflow-x-hidden"
+                        onClick={() =>{
+
+                          
+                        }}
                       >
                         <div>
                           <canvas onClick={handleBox1Click} ref={chartRef} width="400" height="200"></canvas>
@@ -834,7 +857,7 @@ const handleHome = () => {
                           textAlign: "left",
                           width: "100%", // Take full width
                           justifyContent: "flex-start", // Align content and image to the start
-                          overflow: "scroll",
+                          overflow: "hidden",
                           textOverflow: "ellipsis"
                         }}
                       >
@@ -898,12 +921,26 @@ const handleHome = () => {
                           </Typography>
                           <Divider style={{ borderWidth: '.75px', marginTop: '5px' }} />
                           <p style={{ marginBottom: '-2px', fontWeight: 500, color: '#1976D2' }}>{stockData["Count"]} Articles Analyzed</p>
+                          { stockData["Count"] > 0 ? (
+                            <div>
                           <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Avg Pos: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Pos"].toFixed(7)}</span></p>
                           <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Avg Neu: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Neu"].toFixed(7)}</span></p>
                           <p style={{ fontSize: '15px', marginBottom: '10px', fontWeight: 500 }}>Avg Neg: <span style={{ fontSize: '20px', marginLeft: '5px' }}>{stockData["Neg"].toFixed(7)}</span></p>
                           <Divider style={{ borderWidth: '.5px', borderColor: 'black' }} />
                           <p style={{ fontSize: '15px', marginTop: '15px', marginBottom: '0px', fontWeight: 500, whiteSpace: 'nowrap' }}>Total Compound Score: <span style={{ fontSize: '20px', marginLeft: '5px', color: stockData["Compound Score"].toFixed(7) >= 0.05 ? teal[500] : stockData["Compound Score"].toFixed(7) <= -0.05 ? decreasedRed : 'grey' }}>{stockData["Compound Score"].toFixed(7)}</span></p>
-                        </div>
+                         </div>
+                         ) : (
+                          <div>
+                             <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Sorry! Yahoo Finance News </p>
+                             <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>API is currently down.</p>
+                             <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Unable to grab sentiment :(</p>
+                             <p style={{ fontSize: '15px', marginBottom: '-2px', fontWeight: 500 }}>Please check back soon.</p>
+
+
+
+                          </div>
+                         ) }
+                          </div>
   
                         {/* Image section */}
                         {stockData["Overall Sentiment"] === "positive" && (
@@ -1002,11 +1039,32 @@ const handleHome = () => {
                               </Button>
                             </div>
                           )}
+                           {newsItems.length === 0 && (
+                            <div
+                              style={{
+                                display: "flex",
+                                width: "100%",
+                                height:"250px",
+                                justifyContent: "center",
+                                alignItems:"center",
+                              }}
+                            >
+<div style={{ textAlign: 'center' }}>
+  <p style={{ fontWeight: 500, marginBottom: '10px' }}>Sorry, Yahoo Finance News API down, couldn't grab articles :(</p>
+  <p style={{ fontWeight: 500 }}>Check back soon!</p>
+</div>
+
+
+
+                              
+                            </div>
+                          )}
                         </div>
                       </Box>
                     ) : (
                       <div></div>
                       )}
+
                   </div>
                 </div>
               }
