@@ -507,7 +507,7 @@ useEffect(() => {
  setWatchlistArray(updatedArray);
  };
  
- useEffect(() => {
+ useEffecAt(() => {
  const uploadToDatabase = async () => {
   await updateWatchlistArray();
 

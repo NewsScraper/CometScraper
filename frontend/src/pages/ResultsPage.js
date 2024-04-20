@@ -862,8 +862,8 @@ const handleHome = () => {
                         }}
                       >
                         {/* Add margin to the bottom of the heading */}
-                        <h3 style={{ marginBottom: "2.5px", marginTop: "-3px", whiteSpace: "nowrap" }}>About {stockTicker.toUpperCase()}.</h3>
-                        <div style={{ overflow: "scroll", textOverflow: "ellipsis" }}>
+                        <h3 style={{ marginBottom: "2.5px", marginTop: "-2px", whiteSpace: "nowrap" }}>About {stockTicker.toUpperCase()}.</h3>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
                           <p style={{ marginTop: "0px", marginBottom: "-2.5px" }}>{stockData["LBS"]}</p>
                         </div>
                       </div>
