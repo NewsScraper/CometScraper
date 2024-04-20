@@ -848,7 +848,7 @@ const handleHome = () => {
                       className="overflow-y-scroll overflow-x-hidden"
                       onClick={handleBoxClick} // Toggle expansion on click
                     >
-                      {/* Content container */}
+                      {/* Content a  s container */}
                       <div
                         style={{
                           display: "flex",
@@ -861,7 +861,7 @@ const handleHome = () => {
                           textOverflow: "ellipsis"
                         }}
                       >
-                        {/* Add a margin to the bottom of the heading */}
+                        {/* Add margin to the bottom of the heading */}
                         <h3 style={{ marginBottom: "2.5px", marginTop: "-2px", whiteSpace: "nowrap" }}>About {stockTicker.toUpperCase()}.</h3>
                         <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
                           <p style={{ marginTop: "0px", marginBottom: "-2.5px" }}>{stockData["LBS"]}</p>
