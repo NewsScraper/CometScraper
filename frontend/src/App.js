@@ -4,6 +4,8 @@ import SearchPage from "./pages/SearchPage";
 import ResultsPage from "./pages/ResultsPage";
 import "./App.css"; // Import your CSS file here
 import LoginPage from "./pages/LoginPage";
+import SettingsPage from "./pages/SettingsPage";
+
 import LocationPage from "./pages/LocationPage";
 import { Auth } from "./pages/AuthPage";
 
@@ -12,6 +14,9 @@ function App() {
   return (
     <Router>
       <Switch>
+      <Route path="/settings">
+          <SettingsPage />
+        </Route>
       <Route path="/auth">
           <Auth />
         </Route>
@@ -27,6 +32,7 @@ function App() {
         <Route path="/">
           <LoginPage />
         </Route>
+        
       </Switch>
     </Router>
   );

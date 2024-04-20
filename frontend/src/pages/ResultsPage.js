@@ -24,6 +24,7 @@ import { useHistory } from "react-router-dom";
 import firebase from 'firebase/compat/app';
 import userLogo from "../components/user-128.png";
 import Chart from 'chart.js/auto';
+import BouncingDotsLoader from "../components/BouncingDotsLoader";
 
 import {
   Button,
@@ -68,6 +69,7 @@ function ResultsPage() {
   const chartRef = useRef(null); // Reference to the chart canvas element
   const [isGraphVisible, setIsGraphVisible] = useState(false); // State to track if the graph is visible
 
+  const dateTime = currentDate.toISOString(); // Convert to ISO string format 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -76,6 +78,7 @@ function ResultsPage() {
   const dayOfMonth = currentDate.getDate();
 
   const formattedDate = `${dayOfWeek}, ${month} ${dayOfMonth}${getOrdinalSuffix(dayOfMonth)}`;
+  const [stockTickerSentimentArray, setStockTickerSentimentArray] = useState([]);
 
 
   const box1Ref = useRef(null);
@@ -108,6 +111,8 @@ function ResultsPage() {
       }
       try {
         const user = auth.currentUser;
+        const name1 = await user.displayName;
+
         if (user) {
           const uid = user.uid;
           // Get user data from the database
@@ -118,6 +123,8 @@ function ResultsPage() {
             setFirstName(", " + userData.firstName + "!");
           }
           else{
+            setFirstName (", " + name1 + "!")
+
           }
         }
       } catch (error) {
@@ -133,44 +140,111 @@ function ResultsPage() {
   }, []);
 
   useEffect(() => {
-    if (stockTicker) {
-      fetch(`http://127.0.0.1:5000/sentiment?ticker=${stockTicker}`)
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
+    const fetchData = async () => {
+      try {
+        if (stockTicker && stockTicker.trim() !== '') {
+          const res = await fetch(`http://127.0.0.1:5000/sentiment?ticker=${stockTicker}`);
+          
+          if (!res.ok) {
+            console.log("Network response was not ok.");
+            throw new Error("Network response was not ok.");
+          } else {
+            console.log("Network response was ok.");
           }
-          throw Error("Network response was not ok.");
-        })
-        .then((sentimentData) => {
-          setStockData(sentimentData);
-          console.log(sentimentData);
-          // Update newsItems here
-          if (sentimentData && sentimentData["Articles"]) {
-            setNewsItems(
-              sentimentData["Articles"].map((article) => {
-                const { title, score, href, info, date } = article;
-                return {
-                  title,
-                  date: date, 
-                  source: info, 
-                  href,
-                  score,
-                };
-              })
-            );
+  
+          let sentimentData;
+          try {
+            sentimentData = await res.json();
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            // Handle the error gracefully, e.g., set sentimentData to a default value
+            sentimentData = {};
           }
-          console.log(sentimentData["Close Prices"])
-          if (sentimentData && sentimentData["Close Prices"]) {
-            setClosePrices(sentimentData["Close Prices"]);
-            drawChart(sentimentData["Close Prices"]); // Move drawChart here
+  
+          if (sentimentData) {
+            setStockData(sentimentData);
+            console.log(sentimentData);
+  
+            // Update newsItems here if there are articles
+            if (sentimentData["Articles"].length !== 0) {
+              setNewsItems(
+                sentimentData["Articles"].map((article) => {
+                  const { title, score, href, info, date } = article;
+                  return {
+                    title,
+                    date: date,
+                    source: info,
+                    href,
+                    score,
+                  };
+                })
+              );
+            } else {
+              // If there are no articles, set newsItems to an empty array
+              setNewsItems([]);
+            }
+  
+            console.log(sentimentData["Close Prices"]);
+            if (sentimentData["Close Prices"]) {
+              setClosePrices(sentimentData["Close Prices"]);
+            }
+  
+            const trendingValues = [
+              sentimentData["Stock"],
+              sentimentData["Compound Score"], // Convert to integer
+              dateTime, // Convert to integer
+            ];
+  
+            console.log("trending valued" + trendingValues);
+            addToWatchlist(trendingValues);
           }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    }
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+  
+    fetchData();
   }, [stockTicker]); // Only stockTicker as dependency
   
+  
+  useEffect(() => {
+    const uploadToDatabase = async () => {
+      try {
+        console.log(stockTickerSentimentArray);
+       
+        const user = await auth.currentUser;
+        if (user ) { // Check if watchlistArray is not empty
+            // Upload the updated watchlistArray to the database
+            const stockName = stockTickerSentimentArray[0][0];
+    
+            const snapshot = await database.ref(`sentiment/${stockName}`).once('value');
+            let existingData = snapshot.val() || []; // Initialize as an empty array if no data exists
+            
+            // Check if any entry in existingData has the same date as the current date
+            const currentDate = new Date().toISOString().slice(0, 10); // Get current date in "YYYY-MM-DD" format
+            const hasEntryForCurrentDate = existingData.some(entry => entry[2].slice(0, 10) === currentDate);
+            
+            if (!hasEntryForCurrentDate) {
+                // Append the new data to the existing data
+                existingData = existingData.concat(stockTickerSentimentArray);
+                
+                // Update the database with the combined data
+                await database.ref(`sentiment/${stockName}`).set(existingData);
+                console.log('Success');
+            } else {
+                console.log('Entry for current date already exists, not appending data.');
+            }
+        }
+    } catch (error) {
+        console.error('Error updating user data:', error);
+    }
+    
+    };
+    
+    // Call uploadToDatabase whenever watchlistArray changes
+    uploadToDatabase();
+    }, [stockTickerSentimentArray]); 
 
   useEffect(() => {
     // Check if the Geolocation API is available in the browser
@@ -294,38 +368,41 @@ useEffect(() => {
         case '1d':
             // Handle 1 day interval
             const oned = closePrices.slice(-2);
-            drawChart(oned);
+            drawChart(oned, "Days Ago (Closing Prices)");
             break;
         case '5d':
             // Handle 5 day interval
             const fived = closePrices.slice(-5);
-            drawChart(fived);
+            drawChart(fived, "Days Ago (Closing Prices)");
             break;
         case '1m':
             // Handle 1 month interval
             const onem = closePrices.slice(-31);
-            drawChart(onem);
+            drawChart(onem, "Days Ago (Closing Prices)");
             break;
         case '6m':
             // Handle 6 month interval
             const sixm = closePrices.slice(-183);
-            drawChart(sixm);
+            drawChart(sixm, "Days Ago (Closing Prices)");
             break;
         case '1y':
             // Handle 1 year interval
             const oney = closePrices.slice(-365);
-            drawChart(oney);
+            drawChart(oney, "Days Ago (Closing Prices)");
             break;
         case '5y':
             // Handle 5 year interval
-            const fivey = closePrices.slice(-1825);
-            drawChart(fivey);
+            const fivey = closePrices.filter((price, index) => index % 30 === 0).slice(-60); // Adjusted to show monthly data points over 5 years
+            drawChart(fivey, "Months Ago (Closing Prices)");
             break;
         case 'max':
             // Handle maximum interval
-            drawChart(closePrices);
+            const monthlyClosePrices = closePrices.filter((price, index) => index % 30 === 0); // Assuming 30 days in a month
+            drawChart(monthlyClosePrices, "Months Ago (Closing Prices)");
             break;
         default:
+            const monthlyClosePrices1 = closePrices.filter((price, index) => index % 30 === 0); // Assuming 30 days in a month
+            drawChart(monthlyClosePrices1, "Months Ago (Closing Prices)");
             // Handle default case
             break;
     }
@@ -351,6 +428,14 @@ useEffect(() => {
     }
   }
 
+
+ const addToWatchlist = async (item) => {
+  // Create a new array by spreading the existing watchlistArray and appending the new item
+  const updatedArray = [...stockTickerSentimentArray, item];
+  // Set the state with the updated array
+  setStockTickerSentimentArray(updatedArray);
+  };
+
   const handleLogout = async () => {
     try {
       await auth.signOut();
@@ -360,9 +445,15 @@ useEffect(() => {
     }
   };
 
+  const handleSettings = async () => {
+    console.log("settings")
+    history.push(`/settings`);
+  }
+
   useEffect(() => {
     if (isGraphVisible) {
-      drawChart(closePrices);
+      const monthlyClosePrices1 = closePrices.filter((price, index) => index % 30 === 0); // Assuming 30 days in a month
+      drawChart(monthlyClosePrices1, "Months Ago (Closing Prices)");
     }
   }, [isGraphVisible, closePrices]);
 
@@ -370,7 +461,7 @@ useEffect(() => {
     setIsGraphVisible(!isGraphVisible); // Toggle the visibility of the graph
   };
 
-  const drawChart = (prices) => {
+  const drawChart = (prices, title) => {
     if (prices && prices.length > 0) {
       const ctx = chartRef.current.getContext('2d');
       let myChart = chartRef.current.myChart; // Get the reference to the previous chart instance
@@ -384,7 +475,7 @@ useEffect(() => {
         data: {
           labels: prices.map((_, index) => lastIndex - index), // Reverse labels
           datasets: [{
-            label: '$',
+            label: ' $',
             data: prices,
             backgroundColor: 'rgba(75, 192, 192, 0.4)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -397,7 +488,7 @@ useEffect(() => {
             x: {
               title: {
                 display: true,
-                text: 'Days Ago',
+                text: title,
               },
             },
             y: {
@@ -411,6 +502,28 @@ useEffect(() => {
           },
           events: ['mousemove', 'mouseout', 'touchstart', 'touchmove'],
           plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  var label = context.dataset.label || '';
+                  if (label) {
+                    label += ' ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += '' + context.parsed.y.toFixed(2);;
+                  }
+                  return label;
+                },
+                title: function(context) {
+                  var label = context[0].label || '';
+                  if (label) {
+                      label += ' ';
+                  }
+                  label += title.slice(0, title.indexOf(" ("));
+                  return label;
+              }
+              }
+            },
             legend: {
               display: false // Hide the legend
             }
@@ -458,22 +571,30 @@ useEffect(() => {
         // Update the state with the line coordinates
         setLine2Coordinates({ x1, y1, x2, y2 });
     }
-}, [isGraphVisible, isExpanded, box1Ref, box2Ref, box3Ref, box4Ref]);
+}, [isGraphVisible, isExpanded, box1Ref, box2Ref, box3Ref, box4Ref, stockData]);
 
 
+const handleHome = () => {
+  history.push(`/search`);
+};
 
 
   return (      
+
       <div className="custom-grid" style={{ overflowY: "auto" }}>
+        
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: "20px", paddingRight: "20px", paddingTop: "20px", backgroundColor: "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", paddingRight: "20px" }}>
             <Typography
               variant="h5"
+              onClick={handleHome}
               style={{ fontFamily: "Avenir", color: "black", fontSize: "1.75rem", whiteSpace: 'nowrap' }}
               sx={{
                 marginLeft: "10px",
                 marginRight: "17.5px",
                 fontWeight: "bold",
+                cursor: 'pointer',
+
               }}
             >
               CometScraper
@@ -482,94 +603,95 @@ useEffect(() => {
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center" }}>
-              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black" }}>
+              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", fontSize: "17px" }}>
                 Welcome{firstName}
               </p>
               <div style={{ borderLeft: "1px solid black", height: "25px", marginLeft: "10px", marginRight: "10px", marginBottom: "2.5px" }}></div>
-              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "12.5px" }}>
+              <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "12.5px", fontSize: "17px" }}>
                 {formattedDate}
               </p>
               {weatherImage && (
                 <div>
-                  <img src={weatherImage} alt="Weather" style={{ width: "30px", height: "30px", marginRight: "5px", marginTop: "0em" }} />
+                  <img src={weatherImage} alt="Weather" style={{width: "30px", height: "30px", marginRight: "9px", marginTop: "0em" }} />
                 </div>
               )}
               {closestTemperature && (
   
-                <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px" }}>{closestTemperature.temperature}° F</p>
+                <p style={{ fontWeight: 500, margin: "0", fontFamily: "Avenir", color: "black", marginRight: "15px", fontSize:"17px"}}>{closestTemperature.temperature}° F</p>
   
               )}
             </div>
             <div style={{ position: 'relative' }}>
-              <img
-                src={userLogo}
-                alt="Profile"
-                style={{ width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer", marginRight: "10px" }}
-                onClick={toggleDropdown}
-              />
-              {dropdownVisible && (
-                <div id={styles.dropDown} style={{ fontFamily: "Avenir", position: 'absolute', top: '40px', right: '0', border: "1px solid", borderColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '5px' }}>
-                  <ul style={{ listStyleType: 'none', margin: '0', padding: '0' }}>
-                    <li style={{ padding: '10px', cursor: 'pointer' }}>Settings</li>
-                    <hr style={{ width: '100%', margin: '0', borderTop: '1px solid #ccc' }} /> {/* Divider */}
-                    <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleLogout}>Logout</li>
-                  </ul>
-                </div>
-              )}
-  
-            </div>
+              
+          <img
+            src={userLogo}
+            alt="Profile"
+            style={{ width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer", marginRight: "10px",  }}
+            onClick={toggleDropdown}
+          />
+          {dropdownVisible && (
+    <div id={styles.dropDown} style={{ fontFamily: "Avenir", position: 'absolute', top: '40px', right: '0', border: "1px solid", borderColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '5px', zIndex: 9999 }}>
+        <ul style={{ listStyleType: 'none', margin: '0', padding: '0' }}>
+            <li style={{ padding: '10px', cursor: 'pointer' }} onClick={handleSettings} >Settings</li>
+            <hr style={{ width: '100%', margin: '0', borderTop: '1px solid #ccc' }} /> {/* Divider */}
+            <li style={{ padding: '10px', cursor: 'pointer', textAlign: 'center' }} onClick={handleLogout}>Logout</li> {/* Centered text */}
+        </ul>
+    </div>
+)}
+        </div>
+
           </div>
         </div>
-       
-
+     <div>
+            {stockData? (
         <div style={{ fontFamily: "Avenir", color: "black", textAlign: "center", height: "90vh", display: "flex", flexDirection: "column", paddingTop: "20px" }}>
           <div style={{ position: "relative", height: "calc(100%)", display: "grid", gridTemplateRows: "1fr 1fr", gridTemplateColumns: "1fr 1fr", gap: "0px" }}>
           
-          <svg width="100%" height="100%" style={{  position: 'absolute', top: 0, left: 0, zIndex: -4 }}>
-    {/* Render the lines using the calculated coordinates */}
-    {/* Main line from box1 to box2 */}
-    <line x1={line1Coordinates.x1} y1={line1Coordinates.y1} x2={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} y2={line1Coordinates.y1} style={{ stroke: '#00827e', strokeWidth:2 }} />
-    <path 
-        d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1} 
-            C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
-              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${(line1Coordinates.y1 - (isExpanded? 30:15))},
-              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${(line1Coordinates.y1 - (isExpanded? 30:15))}`}
-        style={{ stroke: '#00827e', fill: 'none', strokeWidth:2 }} 
-    />
-    {<line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 - (isExpanded? 30:15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 - (isExpanded? 30:15)} style={{ stroke: '#00827e', strokeWidth:2 }} /> }
-    <path 
-    d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1} 
-        C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
-          ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${(line1Coordinates.y1 + (isExpanded? 30:15))},
-          ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${(line1Coordinates.y1 + (isExpanded? 30:15))}`}
-    style={{ stroke: '#00827e', fill: 'none', strokeWidth:2 }} 
-    />
-    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 + (isExpanded? 30:15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 + (isExpanded? 30:15)} style={{ stroke: '#00827e', strokeWidth:2 }} />
-
-    
-
-</svg>
-<svg width="100%" height="100%" style={{ position: 'absolute', top: -40, left: 0, zIndex: -4 }}>
-    {/* Render the lines using the calculated coordinates */}
-    {/* Main line from box1 to box2 */}
-    <line x1={line2Coordinates.x2} y1={line2Coordinates.y1} x2={(line2Coordinates.x1 + line2Coordinates.x2) / 2.05} y2={line2Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
-    <path
-        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
-            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
-              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 - (showAll ? 30 : 15)},
-              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 - (showAll ? 30 : 15)}`}
-        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
-    />
-    {<line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 - (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 - (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />}
-    <path
-        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
-            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
-              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 + (showAll ? 30 : 15)},
-              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 + (showAll ? 30 : 15)}`}
-        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
-    />
-    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 + (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 + (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
-</svg>
+          
+          {stockData ? (
+            <>
+                <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: -4 }}>
+                    <line x1={line1Coordinates.x1} y1={line1Coordinates.y1} x2={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} y2={line1Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <path
+                        d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1}
+                            C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
+                              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${line1Coordinates.y1 - (isExpanded ? 30 : 15)},
+                              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1 - (isExpanded ? 30 : 15)}`}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 2 }}
+                    />
+                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 - (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 - (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <path
+                        d={`M ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95} ${line1Coordinates.y1}
+                            C ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1},
+                              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 2} ${line1Coordinates.y1 + (isExpanded ? 30 : 15)},
+                              ${(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} ${line1Coordinates.y1 + (isExpanded ? 30 : 15)}`}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 2 }}
+                    />
+                    <line x1={(line1Coordinates.x1 + line1Coordinates.x2) / 1.95 + 30} y1={line1Coordinates.y1 + (isExpanded ? 30 : 15)} x2={line1Coordinates.x2} y2={line1Coordinates.y1 + (isExpanded ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                </svg>
+                <svg width="100%" height="100%" style={{ position: 'absolute', top: -40, left: 0, zIndex: -4 }}>
+                    <line x1={line2Coordinates.x2} y1={line2Coordinates.y1} x2={(line2Coordinates.x1 + line2Coordinates.x2) / 2.05} y2={line2Coordinates.y1} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <path
+                        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
+                            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
+                              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 - (showAll ? 30 : 15)},
+                              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 - (showAll ? 30 : 15)}`}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+                    />
+                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 - (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 - (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                    <path
+                        d={`M ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05} ${line2Coordinates.y1}
+                            C ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1},
+                              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 2} ${line2Coordinates.y1 + (showAll ? 30 : 15)},
+                              ${(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} ${line2Coordinates.y1 + (showAll ? 30 : 15)}`}
+                        style={{ stroke: '#00827e', fill: 'none', strokeWidth: 1.75 }}
+                    />
+                    <line x1={(line2Coordinates.x2 + line2Coordinates.x1) / 2.05 - 30} y1={line2Coordinates.y1 + (showAll ? 30 : 15)} x2={line2Coordinates.x1} y2={line2Coordinates.y1 + (showAll ? 30 : 15)} style={{ stroke: '#00827e', strokeWidth: 2 }} />
+                </svg>
+            </>
+            ) : (
+            <div></div>
+          )}
 
             <div style={{ marginTop: "5px", paddingBottom: "150px", border: "0px solid black", display: "flex", alignItems: "center", justifyContent: "center", height: "60%" }}>
               {
@@ -590,6 +712,7 @@ useEffect(() => {
                           padding: '10px',
                           display: 'flex',
                           alignItems: 'center',
+                          cursor: 'pointer',
                         }}
                         className="overflow-y-scroll overflow-x-hidden"
                       >
@@ -625,6 +748,8 @@ useEffect(() => {
                             padding: '10px',
                             display: 'flex',
                             alignItems: 'center',
+                            cursor: 'pointer',
+
                           }}
                           className="overflow-y-scroll overflow-x-hidden"
                         >
@@ -664,7 +789,7 @@ useEffect(() => {
                           </div>
                         </Box>
                       ) : (
-                        <p>Loading...</p>
+                        <div></div>
                       )}
                     </div>
                   )}
@@ -722,8 +847,8 @@ useEffect(() => {
                     </div>
   
                   ) : (
-                    <p>Loading...</p>
-                  )}
+                    <div></div>
+                    )}
                 </div>
               }
             </div>
@@ -795,8 +920,8 @@ useEffect(() => {
                     </Box>
   
                   ) : (
-                    <p>Loading...</p>
-                  )}
+                    <div></div>
+                    )}
                 </div>
               }
             </div>
@@ -880,8 +1005,8 @@ useEffect(() => {
                         </div>
                       </Box>
                     ) : (
-                      <p>Loading...</p>
-                    )}
+                      <div></div>
+                      )}
                   </div>
                 </div>
               }
@@ -891,7 +1016,13 @@ useEffect(() => {
           </div> 
   
         </div>
-  
+               ) : (<div style={{ display: "flex", justifyContent: "center",  alignItems: "center", height: "92.75vh", width: "100vw" }}>
+               <div style={{marginLeft:"-30px",paddingBottom:"30px"}}>
+                 <BouncingDotsLoader />
+               </div>
+             </div>) }
+
+        </div>  
       </div>
 
   );

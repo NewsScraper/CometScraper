@@ -1,13 +1,15 @@
 import { Box, TextField, Drawer, Button, CssBaseline, Link, Paper, Grid, Typography } from '@mui/material';
 import * as React from 'react';
 import "./Login.css";
-import { GlassCard } from "../components/GlassCard";
 import utdfintechlogo from "../components/utdfintechlogo.png";
 import logingraphicblue1 from "../components/logingraphicblue1.png";
+import candlestick from "../components/candlestick.png";
+
 import { useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {  auth, database, googleAuthProvider } from "../config/firebase";
+import {  auth, database, googleAuthProvider , } from "../config/firebase";
 import firebase from 'firebase/compat/app';
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
 
 
@@ -19,6 +21,7 @@ function LoginPage() {
     const [password, setPassword] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
     const handleName = e => {setFirstName(e.target.value);}
     const handleLastName = e => {setLastName(e.target.value);};
     const handlePassword = e => {setPassword(e.target.value);}
@@ -27,9 +30,12 @@ function LoginPage() {
     const [loginPassword, setLoginPassword] = useState("");
     const handleLoginPassword = e => {setLoginPassword(e.target.value);}
     const handleLoginEmail = e => {setLoginEmail(e.target.value);};
+    const handleForgotEmail = e => {setForgotPasswordEmail(e.target.value);};
     const registerNewUser = () => {setIsNewUser((prevState) => !prevState)}
     const [loggedIn, setLoggedIn] = useState(false);
-
+    const [forgotPasswordState, setForgotPasswordState] = useState(false);
+    const forgotPassword = () => {setForgotPasswordState((prevState) => !prevState)}
+    
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -93,6 +99,19 @@ function LoginPage() {
           console.error(err);
         }
       };
+
+      const handleForgotPassword = async () => {
+
+        sendPasswordResetEmail(auth, forgotPasswordEmail)
+        .then(() => {
+          console.log("email sent")
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorMessage + " " + errorCode)
+        });
+      }
     
 
     return (
@@ -140,17 +159,19 @@ function LoginPage() {
                         <img className="welcomePhoto" src={logingraphicblue1} style={{
                             width: "700px", // Adjust the width as needed
                             height: "auto", // Maintain aspect ratio
-                            paddingLeft: "225px", // Adjust left padding as needed
-                            paddingTop: "195px", // Adjust top padding as needed
+                            paddingLeft: "65px", // Adjust left padding as needed
+                            paddingTop: "150px", // Adjust top padding as needed
   }}/>
+   
                     </Grid>
                     <Grid item xs={12} sm={8} md={5}  elevation={6} square sx={{ }}>
+    { !forgotPasswordState? 
     <Box className="infoCard" sx={{ paddingLeft:"75px", textAlign: 'left', paddingBottom: "200px",  }}> {/* Aligning content to the center */}
         <Typography variant="h5" className="loginHeader" style={{fontFamily: 'Avenir',fontWeight : 600,}}>
             Welcome Back,
         </Typography>
-        <Typography className="lowerLoginHeader" style={{fontFamily: 'Avenir',}}>
-            Sign in
+        <Typography className="lowerLoginHeader" style={{ fontFamily: 'Avenir' }}>
+            {isNewUser ? 'Sign Up' : 'Sign in'}
         </Typography>
         {isNewUser ? (
                                 <Box component="form" noValidate sx={{ mt: 1 }}>
@@ -342,7 +363,7 @@ function LoginPage() {
                                                 padding: 0,
                                             }}
                                         >
-                                            <Typography variant="subtitle1" style={{fontFamily: 'Avenir'}}>
+                                            <Typography variant="subtitle1" onClick={forgotPassword} style={{fontFamily: 'Avenir'}}>
                                                 Forgot your password?
                                             </Typography>
                                         </Button>
@@ -351,6 +372,69 @@ function LoginPage() {
                             )}
                        
     </Box>
+    : 
+    <Box className="infoCard" sx={{ paddingLeft:"75px", textAlign: 'left', paddingBottom: "200px",  }}> {/* Aligning content to the center */}
+        <Typography variant="h5" className="loginHeader" style={{fontFamily: 'Avenir',fontWeight : 600,}}>
+            Forgot Password?
+        </Typography>
+        <Typography className="lowerLoginHeader" style={{ fontFamily: 'Avenir' }}>
+            Send Reset Password Link
+        </Typography>
+        
+                                <Box component="form" noValidate sx={{ mt: 1 }}>
+                                    <TextField
+                                        value={forgotPasswordEmail}
+                                        className={"textField"}
+                                        margin="normal"
+                                        required={false}
+                                        id="email"
+                                        label={<span style={{ fontFamily: 'Avenir' }}>EMAIL ADDRESS</span>}
+                                        name="email"
+                                        autoComplete="email"
+                                        autoFocus
+                                        onChange={handleForgotEmail}
+                                        InputProps={{
+                                            style: {
+                                              borderRadius: "7.5px",
+                                            }
+                                          }}
+                                    />
+                                    <br />
+                                    <Button
+                                        variant="contained"
+                                        sx={{ mt: 3, mb: 2, mr: 5, fontFamily: 'Avenir'}}
+                                        onClick={() => {
+                                          handleForgotPassword();
+                                        }}
+                                    >
+                                        Email Link
+                                    </Button>
+                                    
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <Typography variant="subtitle1" style={{fontFamily: 'Avenir'}}> 
+                                            Already have an Account?
+                                        </Typography>
+                                        <Button
+                                            variant="text"
+                                            sx={{ textTransform: 'none' }}
+                                            onClick={forgotPassword}
+                                        >
+                                            <Typography variant="subtitle1" style={{fontFamily: 'Avenir'}}>
+                                                Sign in
+                                            </Typography>
+                                        </Button>
+                                    </div>
+                                  
+                                </Box>
+                           
+    </Box>
+    }
 </Grid>
 
                 </Grid>
